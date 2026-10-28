@@ -33,4 +33,10 @@
     <string name="section_audio">Audio</string>
     <string name="section_images">Images</string>
     <string name="play">Play</string>
+    <string name="player_name">Grabbit Player</string>
+    <string name="quality">Quality</string>
+    <string name="pip">Picture in picture</string>
+    <string name="rotate">Rotate</string>
+    <string name="speed">Speed</string>
+    <string name="now_playing">Now playing</string>
 </resources>

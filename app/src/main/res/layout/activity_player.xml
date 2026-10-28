@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:keepScreenOn="true">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/playerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:animation_enabled="true"
+        app:played_color="@color/brand"
+        app:scrubber_color="@color/brand"
+        app:buffered_color="#88FFFFFF"
+        app:unplayed_color="#44FFFFFF"
+        app:bar_height="3dp"
+        app:show_rewind_button="true"
+        app:show_fastforward_button="true"
+        app:show_previous_button="true"
+        app:show_next_button="true"
+        app:resize_mode="fit"
+        app:show_buffering="when_playing"
+        app:show_subtitle_button="true"
+        app:surface_type="surface_view"
+        app:use_artwork="true" />
+
+    <LinearLayout
+        android:id="@+id/audioArt"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <FrameLayout
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:background="@drawable/bg_url_bar"
+            android:backgroundTint="#22FFFFFF">
+            <ImageView
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_music_big"
+                android:contentDescription="@null"
+                app:tint="@color/brand" />
+        </FrameLayout>
+        <TextView
+            android:id="@+id/audioTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:paddingHorizontal="32dp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="@android:color/white"
+            android:textSize="17sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/now_playing"
+            android:textColor="#99FFFFFF"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_player_top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="6dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="24dp">
+        <ImageButton android:id="@+id/btnBack" style="@style/PlayerIcon" android:contentDescription="@string/back" android:src="@drawable/ic_back" />
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@android:color/white"
+            android:textSize="15sp" />
+        <ImageButton android:id="@+id/btnQuality" style="@style/PlayerIcon" android:contentDescription="@string/quality" android:src="@drawable/ic_quality" />
+        <ImageButton android:id="@+id/btnPip" style="@style/PlayerIcon" android:contentDescription="@string/pip" android:src="@drawable/ic_pip" />
+        <ImageButton android:id="@+id/btnRotate" style="@style/PlayerIcon" android:contentDescription="@string/rotate" android:src="@drawable/ic_rotate" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_indicator"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="12dp"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+</FrameLayout>

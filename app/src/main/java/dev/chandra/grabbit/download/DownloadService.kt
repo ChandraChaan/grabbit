@@ -102,6 +102,9 @@ class DownloadService : Service() {
         Http.client.newCall(req).execute().use { resp ->
             if (!resp.isSuccessful) throw IllegalStateException("HTTP ${resp.code}")
             val body = resp.body ?: throw IllegalStateException("Empty body")
+            val ct = resp.header("Content-Type")?.substringBefore(';')?.trim()?.lowercase() ?: ""
+            // A login wall or error page instead of the file: refuse rather than save junk.
+            if (ct.startsWith("text/html") || ct.startsWith("application/json")) throw IllegalStateException("Site returned a web page, not a media file (login or expired link)")
             val total = body.contentLength()
             val buf = ByteArray(64 * 1024)
             var done = 0L

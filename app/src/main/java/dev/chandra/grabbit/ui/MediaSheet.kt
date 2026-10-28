@@ -160,6 +160,10 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
                 val last = u.lastPathSegment?.takeIf { it.length in 1..48 }
                 if (last != null) "${u.host}/…/$last" else u.host ?: ""
             }.getOrDefault("")
+            b.btnPlay.visibility = if (item.type == MediaType.IMAGE) View.GONE else View.VISIBLE
+            b.btnPlay.setOnClickListener {
+                dev.chandra.grabbit.player.PlayerActivity.start(activity, listOf(item.url), listOf(item.suggestedFileName.substringBeforeLast('.')), listOf(item.mime ?: if (item.type == MediaType.AUDIO) "audio/*" else "video/*"), 0, item.pageUrl, activity.userAgent)
+            }
             b.btnDownload.setOnClickListener {
                 enqueue(activity, item, activity.userAgent, item.suggestedFileName)
                 it.animate().scaleX(0.85f).scaleY(0.85f).setDuration(80).withEndAction { it.animate().scaleX(1f).scaleY(1f).setDuration(120).start() }.start()

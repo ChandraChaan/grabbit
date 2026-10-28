@@ -1,6 +1,6 @@
-Grabbit 1.1.0
-- Share a link from YouTube, Instagram or any app to Grabbit: the page opens and the download sheet pops up by itself.
-- Copied a link? Open Grabbit and a "Grab it" banner offers to fetch it.
-- Media sheet grouped into Videos / Audio / Images with thumbnails, duration badges and file sizes.
-- Images keep their real file names; tracking pixels and HTML pages are filtered out.
-- Downloads list shows thumbnails of saved files.
+Grabbit 1.2.0
+- Built-in video and audio player (ExoPlayer): plays saved files and streams found on a page before you download them.
+- Gestures: tap for controls, double-tap left/right to seek 10 s, swipe left edge for brightness, right edge for volume.
+- Speed control, quality picker for HLS streams, subtitles, rotate, picture-in-picture.
+- Audio keeps playing in the background with notification and lock-screen controls.
+- Grabbit now shows up as a player when you open video or audio files from other apps.

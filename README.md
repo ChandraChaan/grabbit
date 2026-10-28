@@ -30,13 +30,14 @@ Grabbit is an Android browser with a built-in media sniffer. Open any site, play
 - Downloads run in a foreground service with the page's cookies, referer and user agent, so CDNs that block plain requests still work. Progress notifications, cancel, retry, open and delete.
 - Share any link from another app (YouTube, Instagram, X, Reddit…) straight to Grabbit: it opens the page and pops the download sheet.
 - Copied a link? Open Grabbit and a "Grab it" banner offers to fetch it.
+- Built-in player (Media3 ExoPlayer): play a stream before downloading, play saved files as a playlist, background audio with notification controls, double-tap seek, swipe for brightness and volume, speed, HLS quality picker, subtitles, rotate and picture-in-picture. Grabbit also registers as a system video/audio player.
 - Firebase Analytics and Crashlytics.
 
 ## Roadmap
 
 - [x] 1.0 Browser, sniffer, direct + HLS downloads
 - [x] 1.1 Share-to-Grabbit, clipboard banner, thumbnails and sections
-- [ ] 1.2 Built-in video and audio player (play before download, play saved files, background audio)
+- [x] 1.2 Built-in video and audio player (play before download, play saved files, background audio, gestures, PiP)
 - [ ] 1.3 Download engine: parallel connections, resume, live speed and ETA
 
 ## Contributing
@@ -69,6 +70,7 @@ firebase appdistribution:distribute app/build/outputs/apk/release/app-release.ap
 | `sniffer/` | `UrlSniffer` (URL heuristics), `MediaRegistry` (per-page list), `SnifferBridge` (JS interface) |
 | `download/` | `DownloadService` (foreground downloader), `Hls` (m3u8 parser + AES), `MediaSink` (MediaStore writer), `DownloadStore` (history) |
 | `ui/` | `MainActivity` (browser), `MediaSheet` (found-media sheet), `DownloadsActivity` |
+| `player/` | `PlayerActivity` (gestures, PiP, quality), `PlaybackService` (Media3 session, background audio) |
 
 ## Limits
 

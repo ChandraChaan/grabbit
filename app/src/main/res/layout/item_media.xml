@@ -49,11 +49,22 @@
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPlay"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="4dp"
+        android:contentDescription="@string/play"
+        app:icon="@drawable/ic_play"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDownload"
         style="@style/Widget.Material3.Button.IconButton.Filled"
         android:layout_width="44dp"
         android:layout_height="44dp"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="6dp"
         android:contentDescription="@string/download"
         app:backgroundTint="@color/brand"
         app:icon="@drawable/ic_download"

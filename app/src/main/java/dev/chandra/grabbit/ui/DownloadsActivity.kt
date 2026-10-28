@@ -43,6 +43,12 @@ class DownloadsActivity : AppCompatActivity() {
 
     private fun open(r: DownloadRecord) {
         val uri = r.savedUri?.let { Uri.parse(it) } ?: return
+        if (r.mime.startsWith("video") || r.mime.startsWith("audio")) {
+            val playable = DownloadStore.all().filter { it.status == DownloadStatus.DONE && it.savedUri != null && (it.mime.startsWith("video") || it.mime.startsWith("audio")) }
+            val index = playable.indexOfFirst { it.id == r.id }.coerceAtLeast(0)
+            dev.chandra.grabbit.player.PlayerActivity.start(this, playable.map { it.savedUri!! }, playable.map { it.fileName }, playable.map { it.mime }, index)
+            return
+        }
         val i = Intent(Intent.ACTION_VIEW).setDataAndType(uri, r.mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         runCatching { startActivity(Intent.createChooser(i, getString(R.string.open))) }
             .onFailure { Toast.makeText(this, "No app can open this file", Toast.LENGTH_SHORT).show() }
