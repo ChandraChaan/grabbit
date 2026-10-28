@@ -68,8 +68,10 @@ class DownloadsActivity : AppCompatActivity() {
         fun bind(r: DownloadRecord) {
             b.title.text = r.fileName
             val mime = r.mime
-            b.icon.setImageResource(when { mime.startsWith("audio") -> R.drawable.ic_audio; mime.startsWith("image") -> R.drawable.ic_image; else -> R.drawable.ic_video })
+            val icon = when { mime.startsWith("audio") -> R.drawable.ic_audio; mime.startsWith("image") -> R.drawable.ic_image; else -> R.drawable.ic_video }
+            b.icon.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
             b.icon.setColorFilter(getColor(when { mime.startsWith("audio") -> R.color.audio; mime.startsWith("image") -> R.color.image; else -> R.color.video }))
+            if (r.status == DownloadStatus.DONE && !mime.startsWith("audio")) Thumbs.loadLocal(this@DownloadsActivity, b.icon, r.savedUri, icon) else { b.icon.tag = null; b.icon.setImageResource(icon) }
             val pct = r.progressPercent
             when (r.status) {
                 DownloadStatus.QUEUED -> { b.status.text = "Queued"; b.bar.visibility = View.VISIBLE; b.bar.isIndeterminate = true }

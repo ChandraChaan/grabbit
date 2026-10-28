@@ -40,6 +40,7 @@ class MediaRegistry {
                     mime = existing.mime ?: item.mime,
                     label = existing.label ?: item.label,
                     pageTitle = existing.pageTitle.ifBlank { item.pageTitle },
+                    thumbUrl = existing.thumbUrl ?: item.thumbUrl,
                 )
                 if (merged != existing) { items[item.key] = merged; changed = true }
             }

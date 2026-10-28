@@ -1,1 +1,6 @@
-Grabbit 2026-10-28: first build. Browser with media sniffer, floating download button, direct + HLS downloads.
+Grabbit 1.1.0
+- Share a link from YouTube, Instagram or any app to Grabbit: the page opens and the download sheet pops up by itself.
+- Copied a link? Open Grabbit and a "Grab it" banner offers to fetch it.
+- Media sheet grouped into Videos / Audio / Images with thumbnails, duration badges and file sizes.
+- Images keep their real file names; tracking pixels and HTML pages are filtered out.
+- Downloads list shows thumbnails of saved files.

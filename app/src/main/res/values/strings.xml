@@ -27,4 +27,10 @@
     <string name="clear_finished">Clear finished</string>
     <string name="about">About</string>
     <string name="about_text">Grabbit v%1$s\n\nBrowse any website. When a video, audio track or image loads or plays, the download button lights up with a count. Tap it to save the file to Download/Grabbit.\n\nDownloads supported: direct MP4/WebM/MP3/M4A/images and HLS (m3u8) streams.\n\nRespect copyright and the terms of the sites you visit. Download only content you have the right to save.</string>
+    <string name="clip_title">Link copied from %1$s</string>
+    <string name="clip_action">Grab it</string>
+    <string name="section_videos">Videos</string>
+    <string name="section_audio">Audio</string>
+    <string name="section_images">Images</string>
+    <string name="play">Play</string>
 </resources>

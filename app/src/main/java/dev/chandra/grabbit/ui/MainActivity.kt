@@ -47,6 +47,11 @@ class MainActivity : AppCompatActivity() {
     private var fullscreenView: View? = null
     private var fullscreenCallback: WebChromeClient.CustomViewCallback? = null
     private val homeUrl = "file:///android_asset/home.html"
+    /** Set when a link arrives from another app's Share sheet: open the media sheet as soon as media shows up. */
+    private var autoOpenSheet = false
+    private var autoOpenPosted = false
+    private var lastClipboardOffered: String? = null
+    private var sheet: MediaSheet? = null
 
     private val askNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
     private val askStorage = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -63,7 +68,14 @@ class MainActivity : AppCompatActivity() {
         snifferJs = assets.open("sniffer.js").bufferedReader().readText()
         setupWebView()
         setupChrome()
-        registry.addListener { items -> renderFab(items) }
+        registry.addListener { items ->
+            renderFab(items)
+            if (autoOpenSheet && items.isNotEmpty() && !autoOpenPosted) {
+                autoOpenPosted = true
+                // Give the page a moment to surface the rest (HLS variants, posters), then pop the sheet.
+                b.fab.postDelayed({ if (autoOpenSheet) { autoOpenSheet = false; openSheet() } }, 1500)
+            }
+        }
 
         if (savedInstanceState != null) web.restoreState(savedInstanceState) else if (!handleIntent(intent)) web.loadUrl(homeUrl)
         maybeAskPermissions()
@@ -80,6 +92,8 @@ class MainActivity : AppCompatActivity() {
             Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)?.let { Regex("https?://\\S+").find(it)?.value }
             else -> null
         } ?: return false
+        autoOpenSheet = true; autoOpenPosted = false
+        lastClipboardOffered = shared
         go(shared); return true
     }
 
@@ -232,10 +246,9 @@ class MainActivity : AppCompatActivity() {
         b.btnReload.setOnClickListener { web.reload() }
         b.btnDownloads.setOnClickListener { startActivity(Intent(this, DownloadsActivity::class.java)) }
         b.btnMore.setOnClickListener { showMenu(it) }
-        b.fab.setOnClickListener {
-            inject(web)
-            MediaSheet(this, registry).show()
-        }
+        b.fab.setOnClickListener { openSheet() }
+        b.clipOpen.setOnClickListener { val u = b.clipBanner.tag as? String ?: return@setOnClickListener; hideClipBanner(); autoOpenSheet = true; autoOpenPosted = false; go(u) }
+        b.clipClose.setOnClickListener { hideClipBanner() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 when {
@@ -245,6 +258,38 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    private fun openSheet() {
+        inject(web)
+        if (sheet?.isShowing == true) return
+        sheet = MediaSheet(this, registry).also { it.show() }
+    }
+
+    /** Android only lets the focused app read the clipboard, so check when the window gains focus. */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) offerClipboardLink()
+    }
+
+    private fun offerClipboardLink() {
+        val cm = getSystemService(android.content.ClipboardManager::class.java)
+        val text = runCatching { cm.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString() }.getOrNull() ?: return
+        val url = Regex("https?://\\S+").find(text)?.value?.trimEnd('.', ',', ')') ?: return
+        if (url == lastClipboardOffered || url == web.url) return
+        lastClipboardOffered = url
+        val host = runCatching { Uri.parse(url).host }.getOrNull() ?: url
+        b.clipTitle.text = getString(R.string.clip_title, host)
+        b.clipUrl.text = url
+        b.clipBanner.tag = url
+        b.clipBanner.visibility = View.VISIBLE
+        b.clipBanner.alpha = 0f; b.clipBanner.translationY = -40f
+        b.clipBanner.animate().alpha(1f).translationY(0f).setDuration(220).start()
+        b.clipBanner.postDelayed({ if (b.clipBanner.tag == url) hideClipBanner() }, 12_000)
+    }
+
+    private fun hideClipBanner() {
+        b.clipBanner.animate().alpha(0f).translationY(-40f).setDuration(160).withEndAction { b.clipBanner.visibility = View.GONE }.start()
     }
 
     private fun showMenu(anchor: View) {

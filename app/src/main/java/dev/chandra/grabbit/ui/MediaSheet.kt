@@ -4,9 +4,12 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import dev.chandra.grabbit.R
 import dev.chandra.grabbit.databinding.ItemMediaBinding
@@ -23,18 +26,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-/** Bottom sheet listing everything the sniffer found on the current page. */
+/** Bottom sheet listing everything the sniffer found on the current page, grouped by type. */
 class MediaSheet(private val activity: MainActivity, private val registry: MediaRegistry) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val adapter = Adapter()
     private val probed = HashSet<String>()
+    private var dialog: BottomSheetDialog? = null
+    val isShowing: Boolean get() = dialog?.isShowing == true
 
     fun show() {
         val b = SheetMediaBinding.inflate(LayoutInflater.from(activity))
-        val dialog = BottomSheetDialog(activity)
-        dialog.setContentView(b.root)
+        val d = BottomSheetDialog(activity)
+        d.setContentView(b.root)
+        d.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        d.behavior.skipCollapsed = true
         b.list.layoutManager = LinearLayoutManager(activity)
         b.list.adapter = adapter
         val listener: (List<MediaItem>) -> Unit = { items ->
@@ -45,24 +51,30 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
         }
         registry.addListener(listener)
         listener(registry.snapshot())
-        dialog.setOnDismissListener { registry.removeListener(listener); scope.cancel() }
-        dialog.show()
+        d.setOnDismissListener { registry.removeListener(listener); scope.cancel() }
+        dialog = d
+        d.show()
     }
 
-    /** Fetch size/mime for new items and expand HLS master playlists into their quality variants. */
+    /** Fetch size/mime for new items, drop non-media, and expand HLS master playlists into quality variants. */
     private fun probe(items: List<MediaItem>) {
         for (item in items) {
             if (!probed.add(item.key)) continue
             scope.launch(Dispatchers.IO) {
-                if (item.isHls) expandHls(item) else {
-                    val head = Http.head(item.url, item.pageUrl, activity.userAgent)
-                    if (head == null) { if (item.type == MediaType.IMAGE) registry.remove(item.key); return@launch }
-                    val ct = head.contentType?.substringBefore(';')?.trim() ?: ""
-                    // Tracking pixels, HTML pages and placeholders are not media worth saving.
-                    if (ct.startsWith("text/") || ct.startsWith("application/json")) { registry.remove(item.key); return@launch }
-                    if (item.type == MediaType.IMAGE && head.contentLength in 0 until 10_000) { registry.remove(item.key); return@launch }
-                    registry.update(item.key) { it.copy(sizeBytes = head.contentLength, mime = it.mime ?: head.contentType?.substringBefore(';')) }
+                if (item.isHls) { expandHls(item); return@launch }
+                val head = Http.head(item.url, item.pageUrl, activity.userAgent)
+                if (head == null) { if (item.type == MediaType.IMAGE) registry.remove(item.key); return@launch }
+                val ct = head.contentType?.substringBefore(';')?.trim() ?: ""
+                // Tracking pixels, HTML pages and placeholders are not media worth saving.
+                if (ct.startsWith("text/") || ct.startsWith("application/json")) { registry.remove(item.key); return@launch }
+                if (item.type == MediaType.IMAGE && head.contentLength in 0 until 10_000) { registry.remove(item.key); return@launch }
+                val fixedType = when {
+                    ct.startsWith("audio/") -> MediaType.AUDIO
+                    ct.startsWith("image/") -> MediaType.IMAGE
+                    ct.startsWith("video/") -> MediaType.VIDEO
+                    else -> item.type
                 }
+                registry.update(item.key) { it.copy(sizeBytes = head.contentLength, mime = it.mime ?: ct.ifBlank { null }, type = fixedType) }
             }
         }
     }
@@ -85,13 +97,44 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
         }
     }
 
-    private inner class Adapter : RecyclerView.Adapter<VH>() {
-        private var data: List<MediaItem> = emptyList()
-        fun submit(items: List<MediaItem>) { data = items; notifyDataSetChanged() }
-        override fun getItemCount() = data.size
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(ItemMediaBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-        override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(data[position])
+    private sealed class Row {
+        data class Header(val title: String, val count: Int) : Row()
+        data class Media(val item: MediaItem) : Row()
     }
+
+    private inner class Adapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+        private var rows: List<Row> = emptyList()
+
+        fun submit(items: List<MediaItem>) {
+            val out = ArrayList<Row>()
+            for ((type, title) in listOf(MediaType.VIDEO to R.string.section_videos, MediaType.AUDIO to R.string.section_audio, MediaType.IMAGE to R.string.section_images)) {
+                val group = items.filter { it.type == type }
+                if (group.isEmpty()) continue
+                out.add(Row.Header(activity.getString(title), group.size))
+                group.forEach { out.add(Row.Media(it)) }
+            }
+            rows = out
+            notifyDataSetChanged()
+        }
+
+        override fun getItemCount() = rows.size
+        override fun getItemViewType(position: Int) = if (rows[position] is Row.Header) 0 else 1
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            val inf = LayoutInflater.from(parent.context)
+            return if (viewType == 0) HeaderVH(inf.inflate(R.layout.item_media_header, parent, false) as TextView)
+            else VH(ItemMediaBinding.inflate(inf, parent, false))
+        }
+
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            when (val row = rows[position]) {
+                is Row.Header -> (holder as HeaderVH).view.text = "${row.title}  ·  ${row.count}"
+                is Row.Media -> (holder as VH).bind(row.item)
+            }
+        }
+    }
+
+    private class HeaderVH(val view: TextView) : RecyclerView.ViewHolder(view)
 
     private inner class VH(private val b: ItemMediaBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(item: MediaItem) {
@@ -100,22 +143,27 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
                 MediaType.AUDIO -> Triple(R.drawable.ic_audio, R.color.audio, "Audio")
                 MediaType.IMAGE -> Triple(R.drawable.ic_image, R.color.image, "Image")
             }
-            b.icon.setImageResource(icon)
+            b.icon.scaleType = ImageView.ScaleType.FIT_CENTER
             b.icon.setColorFilter(activity.getColor(color))
+            Thumbs.load(b.icon, item.thumbUrl, item.pageUrl, activity.userAgent, icon)
             b.title.text = item.suggestedFileName
             val parts = ArrayList<String>()
-            parts.add(typeName + " · " + item.extension.uppercase())
+            parts.add(item.extension.uppercase())
             item.label?.let { parts.add(it) }
             if (item.width > 0 && item.height > 0 && item.label?.contains("p") != true) parts.add("${item.width}×${item.height}")
-            if (item.durationSec > 0) parts.add(fmtDuration(item.durationSec))
             if (item.sizeBytes > 0) parts.add(DownloadService.fmt(item.sizeBytes))
             b.subtitle.text = parts.joinToString("  ·  ")
+            b.duration.visibility = if (item.durationSec > 0) View.VISIBLE else View.GONE
+            b.duration.text = fmtDuration(item.durationSec)
             b.host.text = runCatching {
                 val u = android.net.Uri.parse(item.url)
                 val last = u.lastPathSegment?.takeIf { it.length in 1..48 }
                 if (last != null) "${u.host}/…/$last" else u.host ?: ""
             }.getOrDefault("")
-            b.btnDownload.setOnClickListener { enqueue(activity, item, activity.userAgent, item.suggestedFileName) }
+            b.btnDownload.setOnClickListener {
+                enqueue(activity, item, activity.userAgent, item.suggestedFileName)
+                it.animate().scaleX(0.85f).scaleY(0.85f).setDuration(80).withEndAction { it.animate().scaleX(1f).scaleY(1f).setDuration(120).start() }.start()
+            }
             b.root.setOnLongClickListener {
                 activity.getSystemService(android.content.ClipboardManager::class.java).setPrimaryClip(android.content.ClipData.newPlainText("url", item.url))
                 Toast.makeText(activity, R.string.copy_link, Toast.LENGTH_SHORT).show(); true

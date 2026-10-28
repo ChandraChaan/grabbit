@@ -2,6 +2,21 @@
 
 **Grab any video, audio or image from the web.**
 
+[![Download APK](https://img.shields.io/github/v/release/ChandraChaan/grabbit?label=Download%20APK&color=FF6D00&style=for-the-badge)](https://github.com/ChandraChaan/grabbit/releases/latest)
+![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-100%25-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+
+> Free, open source, no ads, no account. Works like VidMate or Snaptube but with a browser you control: if a page can play it, Grabbit can usually save it.
+
+## Download
+
+Grab the latest APK from the [Releases page](https://github.com/ChandraChaan/grabbit/releases/latest), install it, and open any site.
+
+| Home | Media found | HLS qualities | Copied link | Downloads |
+| --- | --- | --- | --- | --- |
+| ![Home](docs/screenshots/home.png) | ![Sheet](docs/screenshots/sheet.png) | ![HLS](docs/screenshots/hls.png) | ![Clipboard](docs/screenshots/clipboard.png) | ![Downloads](docs/screenshots/downloads.png) |
+
 Grabbit is an Android browser with a built-in media sniffer. Open any site, play a video or song or open a photo, and the floating download button lights up with the number of files it found. Tap it, pick the quality, and the file is saved to `Download/Grabbit`, even on sites that show no download option.
 
 ## Features
@@ -13,7 +28,20 @@ Grabbit is an Android browser with a built-in media sniffer. Open any site, play
 - Floating download button with a live count; a bottom sheet shows type, resolution, duration and file size for each item.
 - HLS streams are expanded into their quality variants (1080p / 720p / ...) and downloaded segment by segment, including AES-128 encrypted streams and fMP4 init segments.
 - Downloads run in a foreground service with the page's cookies, referer and user agent, so CDNs that block plain requests still work. Progress notifications, cancel, retry, open and delete.
+- Share any link from another app (YouTube, Instagram, X, Reddit…) straight to Grabbit: it opens the page and pops the download sheet.
+- Copied a link? Open Grabbit and a "Grab it" banner offers to fetch it.
 - Firebase Analytics and Crashlytics.
+
+## Roadmap
+
+- [x] 1.0 Browser, sniffer, direct + HLS downloads
+- [x] 1.1 Share-to-Grabbit, clipboard banner, thumbnails and sections
+- [ ] 1.2 Built-in video and audio player (play before download, play saved files, background audio)
+- [ ] 1.3 Download engine: parallel connections, resume, live speed and ETA
+
+## Contributing
+
+Issues and pull requests are welcome. If a site does not get detected, open an issue with the page URL.
 
 ## Build
 

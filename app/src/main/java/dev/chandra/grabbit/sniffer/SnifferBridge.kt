@@ -32,6 +32,7 @@ class SnifferBridge(private val registry: MediaRegistry) {
                 isHls = sniffed?.isHls ?: url.contains(".m3u8"),
                 label = sniffed?.label,
                 source = "page",
+                thumbUrl = if (type == MediaType.IMAGE) url else o.optString("poster").takeIf { it.startsWith("http") },
             )
             registry.offer(item)
         } catch (_: Exception) { }

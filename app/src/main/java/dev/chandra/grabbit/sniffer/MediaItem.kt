@@ -18,6 +18,8 @@ data class MediaItem(
     /** Content-Length when known (filled lazily by a HEAD request). -1 = unknown. */
     val sizeBytes: Long = -1,
     val source: String = "page",
+    /** Poster frame or the image itself, for the sheet thumbnail. */
+    val thumbUrl: String? = null,
 ) {
     val key: String get() = url.substringBefore('#')
 
@@ -26,6 +28,11 @@ data class MediaItem(
 
     val suggestedFileName: String
         get() {
+            // Images usually carry a meaningful file name in the URL; videos rarely do.
+            if (type == MediaType.IMAGE) {
+                val last = runCatching { android.net.Uri.parse(url).lastPathSegment }.getOrNull()
+                if (last != null && last.contains('.') && last.length in 5..100 && !last.startsWith("getuid")) return last
+            }
             val base = pageTitle.ifBlank { pageUrl.substringAfter("://").substringBefore('/') }
                 .replace(Regex("[\\\\/:*?\"<>|\\n\\r\\t]"), " ")
                 .replace(Regex("\\s+"), " ").trim().take(80).ifBlank { "grabbit" }

@@ -13,3 +13,4 @@
 /app/release/
 /keystore/*.jks
 /key.properties
+/dist/
