@@ -28,6 +28,8 @@ data class DownloadRecord(
     val audioUrl: String? = null,
     /** Container of the merge inputs: "mp4" or "webm". */
     val container: String? = null,
+    /** Warning shown with a finished download, e.g. the site only served a video track. */
+    var note: String? = null,
 ) {
     val progressPercent: Int get() = when {
         bytesTotal > 0 -> ((bytesDone * 100) / bytesTotal).toInt().coerceIn(0, 100)
@@ -42,6 +44,7 @@ data class DownloadRecord(
         put("bytesTotal", bytesTotal); put("savedUri", savedUri ?: JSONObject.NULL)
         put("error", error ?: JSONObject.NULL); put("pageTitle", pageTitle)
         put("audioUrl", audioUrl ?: JSONObject.NULL); put("container", container ?: JSONObject.NULL)
+        put("note", note ?: JSONObject.NULL)
     }
 
     companion object {
@@ -56,6 +59,7 @@ data class DownloadRecord(
             pageTitle = o.optString("pageTitle"),
             audioUrl = o.optString("audioUrl").takeIf { it.isNotBlank() && it != "null" },
             container = o.optString("container").takeIf { it.isNotBlank() && it != "null" },
+            note = o.optString("note").takeIf { it.isNotBlank() && it != "null" },
         ).also { if (it.status == DownloadStatus.RUNNING || it.status == DownloadStatus.QUEUED) { it.status = DownloadStatus.FAILED; it.error = "Interrupted" } }
     }
 }

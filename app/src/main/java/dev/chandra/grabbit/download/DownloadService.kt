@@ -82,7 +82,8 @@ class DownloadService : Service() {
                 else -> DirectDownloader(rec, sink, progress).run()
             }
             sink.finish()
-            DownloadStore.update(rec.id) { it.status = DownloadStatus.DONE; it.savedUri = sink.uri.toString(); it.fileName = sink.displayName; it.speedBps = 0; it.etaSec = -1; if (it.bytesTotal <= 0) it.bytesTotal = it.bytesDone }
+            val note = if (rec.mime.startsWith("video")) checkAudio(sink.uri) else null
+            DownloadStore.update(rec.id) { it.status = DownloadStatus.DONE; it.savedUri = sink.uri.toString(); it.fileName = sink.displayName; it.speedBps = 0; it.etaSec = -1; it.note = note; if (it.bytesTotal <= 0) it.bytesTotal = it.bytesDone }
             notify(rec.id, buildNotification(DownloadStore.get(rec.id) ?: rec))
             withContext(Dispatchers.Main) { Toast.makeText(this@DownloadService, getString(R.string.download_complete), Toast.LENGTH_SHORT).show() }
         } catch (e: Exception) {
@@ -154,6 +155,14 @@ class DownloadService : Service() {
             ts.abort()
         }
     }
+
+    /** A finished video with no audio track gets a visible warning instead of a silent surprise. */
+    private fun checkAudio(uri: android.net.Uri): String? = runCatching {
+        contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+            val t = AvMuxer.inspect(fd = pfd.fileDescriptor) ?: return null
+            if (t.hasVideo && !t.hasAudio) getString(R.string.note_no_audio) else null
+        }
+    }.getOrNull()
 
     private fun headHex(f: java.io.File): String = runCatching {
         f.inputStream().use { val b = ByteArray(16); val n = it.read(b); b.take(n.coerceAtLeast(0)).joinToString("") { "%02x".format(it) } }

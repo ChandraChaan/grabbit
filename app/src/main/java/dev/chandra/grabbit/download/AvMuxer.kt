@@ -33,25 +33,24 @@ object AvMuxer {
     fun merge(videoPath: String, audioPath: String, out: FileDescriptor, webm: Boolean, onProgress: (Float) -> Unit = {}): String? {
         val v = try { openTrack(videoPath, "video/") ?: return "no video track in downloaded video file" } catch (e: Exception) { return "video file unreadable: ${e.message}" }
         val a = try { openTrack(audioPath, "audio/") } catch (e: Exception) { v.extractor.release(); return "audio file unreadable: ${e.message}" }
+        if (a == null) { v.extractor.release(); return "no audio track in downloaded audio file" }
         val muxer = MediaMuxer(out, if (webm) MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM else MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         try {
             val vOut = muxer.addTrack(v.format)
-            val aOut = a?.let { muxer.addTrack(it.format) } ?: -1
+            val aOut = muxer.addTrack(a.format)
             runCatching { v.format.getInteger("rotation-degrees") }.getOrNull()?.let { muxer.setOrientationHint(it) }
             muxer.start()
             val vDur = v.format.getLong(MediaFormat.KEY_DURATION, 1L)
             copy(v, muxer, vOut) { onProgress(0.5f * it / vDur) }
-            if (a != null) {
-                val aDur = a.format.getLong(MediaFormat.KEY_DURATION, 1L)
-                copy(a, muxer, aOut) { onProgress(0.5f + 0.5f * it / aDur) }
-            }
+            val aDur = a.format.getLong(MediaFormat.KEY_DURATION, 1L)
+            copy(a, muxer, aOut) { onProgress(0.5f + 0.5f * it / aDur) }
             muxer.stop()
             return null
         } catch (e: Exception) {
             return "mux error: ${e.message ?: e.javaClass.simpleName}"
         } finally {
             runCatching { muxer.release() }
-            v.extractor.release(); a?.extractor?.release()
+            v.extractor.release(); a.extractor.release()
         }
     }
 
@@ -98,6 +97,28 @@ object AvMuxer {
             return false
         } finally {
             runCatching { muxer.release() }
+            ex.release()
+        }
+    }
+
+    data class Tracks(val hasVideo: Boolean, val hasAudio: Boolean, val width: Int, val height: Int)
+
+    /** Which tracks a (possibly partial) media file contains; null if it cannot be parsed at all. */
+    fun inspect(path: String? = null, fd: FileDescriptor? = null): Tracks? {
+        val ex = MediaExtractor()
+        try {
+            if (path != null) ex.setDataSource(path) else if (fd != null) ex.setDataSource(fd) else return null
+            var v = false; var a = false; var w = 0; var h = 0
+            for (i in 0 until ex.trackCount) {
+                val f = ex.getTrackFormat(i)
+                val mime = f.getString(MediaFormat.KEY_MIME) ?: continue
+                if (mime.startsWith("video/")) { v = true; w = f.getInteger(MediaFormat.KEY_WIDTH, 0); h = f.getInteger(MediaFormat.KEY_HEIGHT, 0) }
+                if (mime.startsWith("audio/")) a = true
+            }
+            return Tracks(v, a, w, h)
+        } catch (e: Exception) {
+            return null
+        } finally {
             ex.release()
         }
     }

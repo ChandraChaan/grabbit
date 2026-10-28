@@ -1,6 +1,5 @@
-Grabbit 1.5.0
-- Player, MX-style: horizontal swipe to scrub, long-press for 2x speed, lock controls, aspect ratio (fit / crop / stretch), audio track and subtitle selection, load external SRT/VTT/ASS subtitles, speed 0.25x–3x, sleep timer, screenshot, resume where you left off, auto-landscape for wide videos.
-- New "Videos & music" library: everything on the phone grouped by folder, playable with the built-in player (shortcut on the home page and in Downloads).
-- Downloading something already saved asks first: Open, Download again, or Cancel. Links that point at the same file are shown once per page.
-- Refreshed light and dark colour palette.
-- Records whose files were deleted outside the app now say "File was removed" and can be re-downloaded.
+Grabbit 1.5.1
+- No more silent videos: Instagram / Facebook split tracks are detected, paired and merged into one file with sound.
+- A finished video that really has no audio track is flagged with a warning in Downloads.
+- Downloading a stream the site serves without sound asks for confirmation first.
+- Merging never produces a video-only file any more; it reports the failure instead.

@@ -64,4 +64,11 @@
     <string name="already_downloaded">Already downloaded</string>
     <string name="already_downloaded_msg">%1$s (%2$s) is already in your downloads.</string>
     <string name="download_again">Download again</string>
+    <string name="note_no_audio">No audio track (the site served video only)</string>
+    <string name="no_audio_title">This stream has no audio</string>
+    <string name="no_audio_msg">The site serves this video without its sound. Grabbit could not find a matching audio track on this page. Download it anyway?</string>
+    <string name="download_anyway">Download anyway</string>
+    <string name="label_video_only">video only (no audio)</string>
+    <string name="label_audio_only">audio track</string>
+    <string name="label_paired">video + audio · merged</string>
 </resources>

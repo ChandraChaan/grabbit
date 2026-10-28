@@ -74,6 +74,9 @@ class MediaRegistry {
         notifyChanged()
     }
 
+    /** Position in which the item was first seen (network order ≈ the order the player requested tracks). */
+    fun insertionIndex(key: String): Int = synchronized(items) { items.keys.indexOf(key) }
+
     fun snapshot(): List<MediaItem> = synchronized(items) {
         items.values.sortedWith(compareBy<MediaItem> { it.type.ordinal }.thenByDescending { it.height }.thenByDescending { it.sizeBytes })
     }

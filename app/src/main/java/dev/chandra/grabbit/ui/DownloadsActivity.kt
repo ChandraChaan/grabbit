@@ -108,7 +108,7 @@ class DownloadsActivity : AppCompatActivity() {
                     if (pct >= 0) b.bar.progress = pct
                     b.status.text = DownloadService.statusLine(r)
                 }
-                DownloadStatus.DONE -> { b.bar.visibility = View.GONE; b.status.text = "Saved · ${DownloadService.fmt(r.bytesTotal)} · Download/Grabbit" }
+                DownloadStatus.DONE -> { b.bar.visibility = View.GONE; b.status.text = (r.note?.let { "⚠ $it · " } ?: "") + "Saved · ${DownloadService.fmt(r.bytesTotal)} · Download/Grabbit" }
                 DownloadStatus.FAILED -> { b.bar.visibility = View.GONE; b.status.text = "Failed" + (r.error?.let { ": $it" } ?: "") }
                 DownloadStatus.CANCELLED -> { b.bar.visibility = View.GONE; b.status.text = "Cancelled" }
             }

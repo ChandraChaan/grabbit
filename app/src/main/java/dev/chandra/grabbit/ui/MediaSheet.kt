@@ -106,7 +106,47 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
                     else -> item.type
                 }
                 registry.update(item.key) { it.copy(sizeBytes = head.contentLength, mime = it.mime ?: ct.ifBlank { null }, type = fixedType) }
+                if (item.label == "stream track") inspectSplitTrack(item)
             }
+        }
+    }
+
+    /**
+     * Instagram / Facebook serve video and audio as separate DASH tracks that both look like .mp4.
+     * Peek at the first bytes to learn which is which, then pair each video with the audio that was
+     * requested right after it so the download gets merged into one file with sound.
+     */
+    private fun inspectSplitTrack(item: MediaItem) {
+        val tmp = java.io.File(activity.cacheDir, "probe-${item.key.hashCode()}.bin")
+        try {
+            val req = Http.request(item.url, item.pageUrl, activity.userAgent).newBuilder().header("Range", "bytes=0-786431").build()
+            Http.client.newCall(req).execute().use { r ->
+                if (!r.isSuccessful) return
+                r.body?.byteStream()?.use { input -> tmp.outputStream().use { input.copyTo(it) } }
+            }
+            val t = dev.chandra.grabbit.download.AvMuxer.inspect(path = tmp.absolutePath) ?: return
+            when {
+                t.hasVideo && !t.hasAudio -> registry.update(item.key) { it.copy(type = MediaType.VIDEO, label = activity.getString(R.string.label_video_only), width = t.width, height = t.height, container = "mp4") }
+                !t.hasVideo && t.hasAudio -> registry.update(item.key) { it.copy(type = MediaType.AUDIO, label = activity.getString(R.string.label_audio_only), mime = "audio/mp4", container = "mp4") }
+                t.hasVideo && t.hasAudio -> registry.update(item.key) { it.copy(label = null, width = t.width, height = t.height) }
+            }
+            pairSplitTracks()
+        } catch (_: Exception) {
+        } finally {
+            tmp.delete()
+        }
+    }
+
+    private fun pairSplitTracks() {
+        val videoOnly = activity.getString(R.string.label_video_only)
+        val audioOnly = activity.getString(R.string.label_audio_only)
+        val all = registry.snapshot()
+        val audios = all.filter { it.label == audioOnly }
+        if (audios.isEmpty()) return
+        for (v in all.filter { it.label == videoOnly && it.audioUrl == null }) {
+            val vi = registry.insertionIndex(v.key)
+            val a = audios.minByOrNull { kotlin.math.abs(registry.insertionIndex(it.key) - vi) } ?: continue
+            registry.update(v.key) { it.copy(audioUrl = a.url, label = activity.getString(R.string.label_paired), container = "mp4", groupKey = it.groupKey ?: it.key) }
         }
     }
 
@@ -201,13 +241,23 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
             }
             b.btnDownload.setOnClickListener {
                 it.animate().scaleX(0.85f).scaleY(0.85f).setDuration(80).withEndAction { it.animate().scaleX(1f).scaleY(1f).setDuration(120).start() }.start()
-                if (variants.size > 1) showQualityPicker(item, variants) else enqueue(activity, item, activity.userAgent, item.suggestedFileName)
+                if (variants.size > 1) showQualityPicker(item, variants) else enqueueChecked(item)
             }
             b.root.setOnLongClickListener {
                 activity.getSystemService(android.content.ClipboardManager::class.java).setPrimaryClip(android.content.ClipData.newPlainText("url", item.url))
                 Toast.makeText(activity, R.string.copy_link, Toast.LENGTH_SHORT).show(); true
             }
         }
+    }
+
+    /** Warn before saving a stream the site serves without sound. */
+    private fun enqueueChecked(item: MediaItem) {
+        val silent = item.type == MediaType.VIDEO && item.audioUrl == null && (item.label?.contains("no audio", true) == true)
+        if (!silent) { enqueue(activity, item, activity.userAgent, item.suggestedFileName); return }
+        androidx.appcompat.app.AlertDialog.Builder(activity)
+            .setTitle(R.string.no_audio_title).setMessage(R.string.no_audio_msg)
+            .setPositiveButton(R.string.download_anyway) { _, _ -> enqueue(activity, item, activity.userAgent, item.suggestedFileName) }
+            .setNegativeButton(R.string.cancel, null).show()
     }
 
     private fun showQualityPicker(rep: MediaItem, variants: List<MediaItem>) {
@@ -233,7 +283,7 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
                 if (v.sizeBytes > 0) detail.add(DownloadService.fmt(v.sizeBytes))
                 if (v.audioUrl != null) detail.add("video + audio merged")
                 vb.detail.text = detail.joinToString("  ·  ")
-                holder.itemView.setOnClickListener { enqueue(activity, v, activity.userAgent, v.suggestedFileName); d.dismiss() }
+                holder.itemView.setOnClickListener { enqueueChecked(v); d.dismiss() }
             }
         }
         d.show()
