@@ -93,6 +93,61 @@
     }
   }
 
+  // Media URLs carried inside JSON: GraphQL / XHR responses and inline data blobs (Instagram,
+  // Facebook, X, TikTok…). Instagram's progressive "video_versions" (with sound) live here.
+  function scanText(text) {
+    try {
+      if (!text || typeof text !== 'string' || text.length > 8000000) return;
+      if (text.indexOf('.mp4') < 0 && text.indexOf('.m3u8') < 0 && text.indexOf('.m4a') < 0 && text.indexOf('.mp3') < 0 && text.indexOf('.webm') < 0) return;
+      // JSON escapes: \/ and any \uXXXX (Instagram escapes '%' as \u0025, '=' as \u003d, '&' as \u0026).
+      var s = text.replace(/\\\//g, '/').replace(/\\u([0-9a-fA-F]{4})/g, function (_, h) { return String.fromCharCode(parseInt(h, 16)); }).replace(/&amp;/g, '&');
+      var re = /https?:\/\/[^"'\s<>\\]+?\.(mp4|m4a|m3u8|mp3|webm)(\?[^"'\s<>\\]*)?/g;
+      var m, n = 0;
+      while ((m = re.exec(s)) && n < 80) {
+        n++;
+        var u = m[0];
+        if (/\.(jpg|png|webp)/i.test(u)) continue;
+        post(/\.(mp3|m4a)(\?|$)/.test(u) ? 'audio' : 'video', u, {});
+      }
+    } catch (e) {}
+  }
+  try {
+    var ofetch = window.fetch;
+    if (ofetch && !ofetch.__grabbit) {
+      window.fetch = function () {
+        var p = ofetch.apply(this, arguments);
+        try {
+          p.then(function (r) {
+            try {
+              var ct = (r.headers && r.headers.get('content-type')) || '';
+              if (ct.indexOf('json') >= 0 || ct.indexOf('text') >= 0 || ct.indexOf('javascript') >= 0) r.clone().text().then(scanText).catch(function () {});
+            } catch (e) {}
+          }).catch(function () {});
+        } catch (e) {}
+        return p;
+      };
+      window.fetch.__grabbit = 1;
+    }
+  } catch (e) {}
+  try {
+    var osend = XMLHttpRequest.prototype.send;
+    if (!osend.__grabbit) {
+      XMLHttpRequest.prototype.send = function () {
+        try {
+          this.addEventListener('load', function () {
+            try { if (this.responseType === '' || this.responseType === 'text') scanText(this.responseText); } catch (e) {}
+          });
+        } catch (e) {}
+        return osend.apply(this, arguments);
+      };
+      XMLHttpRequest.prototype.send.__grabbit = 1;
+    }
+  } catch (e) {}
+  function scanInlineJson() {
+    var sc = document.querySelectorAll('script[type="application/json"],script[type="application/ld+json"],script[data-sjs],script[data-content-len]');
+    for (var i = 0; i < sc.length; i++) scanText(sc[i].textContent);
+  }
+
   // Hook setters so dynamically assigned sources are caught (SPA players).
   function hookSrc(proto, type) {
     try {
@@ -123,8 +178,9 @@
     mo.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'srcset', 'poster'] });
   } catch (e) {}
 
-  window.__grabbitRescan = function () { scan(document); };
+  window.__grabbitRescan = function () { scan(document); scanInlineJson(); };
   scan(document);
+  scanInlineJson();
   setTimeout(function () { scan(document); }, 1500);
   setTimeout(function () { scan(document); }, 4000);
 })();

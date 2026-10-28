@@ -38,7 +38,7 @@ object Http {
         // Many CDNs reject HEAD; do a ranged GET and close immediately.
         val req = request(url, referer, userAgent).newBuilder().header("Range", "bytes=0-0").build()
         client.newCall(req).execute().use { r ->
-            if (!r.isSuccessful) return null
+            if (!r.isSuccessful) { android.util.Log.w("Grabbit", "probe ${r.code} for ${url.take(120)} req-headers=${req.headers.names()}"); return null }
             val type = r.header("Content-Type")
             val len = r.header("Content-Range")?.substringAfterLast('/')?.toLongOrNull()
                 ?: r.header("Content-Length")?.toLongOrNull()?.takeIf { r.code != 206 } ?: -1L

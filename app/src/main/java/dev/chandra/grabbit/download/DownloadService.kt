@@ -91,6 +91,7 @@ class DownloadService : Service() {
             if (e is kotlinx.coroutines.CancellationException) {
                 DownloadStore.update(rec.id) { it.status = DownloadStatus.CANCELLED; it.speedBps = 0 }
             } else {
+                android.util.Log.w("Grabbit", "download failed: ${e.message} url=${rec.url}")
                 DownloadStore.update(rec.id) { it.status = DownloadStatus.FAILED; it.error = e.message ?: e.javaClass.simpleName; it.speedBps = 0 }
                 notify(rec.id, buildNotification(DownloadStore.get(rec.id) ?: rec))
                 com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance().recordException(e)

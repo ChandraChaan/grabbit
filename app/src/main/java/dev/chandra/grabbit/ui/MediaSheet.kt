@@ -106,7 +106,8 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
                     else -> item.type
                 }
                 registry.update(item.key) { it.copy(sizeBytes = head.contentLength, mime = it.mime ?: ct.ifBlank { null }, type = fixedType) }
-                if (item.label == "stream track") inspectSplitTrack(item)
+                val host = runCatching { android.net.Uri.parse(item.url).host ?: "" }.getOrDefault("")
+                if (item.label == "stream track" || host.contains("cdninstagram") || host.contains("fbcdn")) inspectSplitTrack(item)
             }
         }
     }
@@ -128,7 +129,7 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
             when {
                 t.hasVideo && !t.hasAudio -> registry.update(item.key) { it.copy(type = MediaType.VIDEO, label = activity.getString(R.string.label_video_only), width = t.width, height = t.height, container = "mp4") }
                 !t.hasVideo && t.hasAudio -> registry.update(item.key) { it.copy(type = MediaType.AUDIO, label = activity.getString(R.string.label_audio_only), mime = "audio/mp4", container = "mp4") }
-                t.hasVideo && t.hasAudio -> registry.update(item.key) { it.copy(label = null, width = t.width, height = t.height) }
+                t.hasVideo && t.hasAudio -> registry.update(item.key) { it.copy(type = MediaType.VIDEO, label = "video + audio", width = t.width, height = t.height, container = "mp4") }
             }
             pairSplitTracks()
         } catch (_: Exception) {

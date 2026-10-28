@@ -1,5 +1,4 @@
-Grabbit 1.5.1
-- No more silent videos: Instagram / Facebook split tracks are detected, paired and merged into one file with sound.
-- A finished video that really has no audio track is flagged with a warning in Downloads.
-- Downloading a stream the site serves without sound asks for confirmation first.
-- Merging never produces a video-only file any more; it reports the failure instead.
+Grabbit 1.5.2
+- Instagram fixed (verified on a public reel): the video URLs live inside the page's JSON, not in network requests, and Instagram escapes them in a way that cut off the signature. Grabbit now reads inline and GraphQL JSON correctly, offers the full-quality MP4 with sound, and pairs separate video/audio tracks for merging.
+- Requests made through a site's service worker are now sniffed too (Instagram, Facebook and other PWAs).
+- Media URLs found in XHR/fetch responses are listed as well, which helps on X, TikTok and Facebook.

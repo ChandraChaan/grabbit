@@ -135,6 +135,16 @@ class MainActivity : AppCompatActivity() {
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
         web.addJavascriptInterface(SnifferBridge(registry, applicationContext), "GrabbitBridge")
+        // Requests made by a page's service worker never reach WebViewClient.shouldInterceptRequest;
+        // Instagram / Facebook fetch media that way, so sniff those too.
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_BASIC_USAGE)) {
+            androidx.webkit.ServiceWorkerControllerCompat.getInstance().setServiceWorkerClient(object : androidx.webkit.ServiceWorkerClientCompat() {
+                override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? {
+                    UrlSniffer.classify(request)?.let { registry.offer(it) }
+                    return null
+                }
+            })
+        }
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {

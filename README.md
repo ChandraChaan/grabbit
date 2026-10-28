@@ -24,9 +24,11 @@ Grabbit is an Android browser with a built-in media sniffer. Open any site, play
 - Full browser (URL bar, search, back/forward, desktop mode, fullscreen video, share-to-Grabbit from other apps).
 - **YouTube done properly**: watch, Shorts and youtu.be links are resolved with the NewPipe extractor into real options (144p to 2160p, plus audio-only). Video-only DASH streams are downloaded together with the best audio track and merged on the phone with the platform muxer, no re-encoding, so you get one normal MP4.
 - **Quality picker**: tapping Download on anything with more than one quality (YouTube, HLS variants) opens a picker with resolution, container and file size.
-- Media detection on two layers:
+- **Instagram reels and posts**: the player keeps its media URLs inside the page's JSON; Grabbit decodes them (including Instagram's `\u0025` escaping), offers the progressive MP4 with sound, and pairs separate DASH video/audio tracks for an on-device merge. Verified on public reels; works logged in too.
+- Media detection on three layers:
   - **Network**: every request the page makes is inspected for video/audio files and HLS (`.m3u8`) playlists. YouTube `videoplayback` streams are recognised and labelled by quality.
   - **Page**: a script injected into every page watches `<video>`, `<audio>`, `<img>`, `<source>`, Open Graph tags and anything the page plays or inserts later.
+  - **Data**: inline JSON, GraphQL/XHR/fetch responses and service-worker requests are scanned for media URLs, which is how single-page apps like Instagram, Facebook, X and TikTok are covered.
 - Floating download button with a live count; a bottom sheet shows type, resolution, duration and file size for each item.
 - HLS streams are expanded into their quality variants (1080p / 720p / ...) and downloaded segment by segment, including AES-128 encrypted streams and fMP4 init segments, then remuxed into a standard MP4.
 - Sites that hand out `blob:` downloads (in-page generated files) are handled too: the bytes are pulled out of the page and saved like any other download.
