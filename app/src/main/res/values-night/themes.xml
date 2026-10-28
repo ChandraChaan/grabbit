@@ -2,11 +2,25 @@
     <style name="Theme.Grabbit" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/brand</item>
         <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorPrimaryContainer">@color/brand_dark</item>
+        <item name="colorPrimaryContainer">@color/chip_bg</item>
+        <item name="colorOnPrimaryContainer">@color/chip_text</item>
         <item name="colorSecondary">@color/brand_light</item>
-        <item name="android:statusBarColor">#1B1B1F</item>
+        <item name="colorSecondaryContainer">@color/chip_bg</item>
+        <item name="colorOnSecondaryContainer">@color/chip_text</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorSurfaceContainerLow">@color/sheet</item>
+        <item name="colorSurfaceContainer">@color/surface_dim</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_dim</item>
+        <item name="colorOutline">@color/outline</item>
+        <item name="android:colorBackground">@color/surface</item>
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:statusBarColor">@color/surface</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:navigationBarColor">#1B1B1F</item>
+        <item name="android:navigationBarColor">@color/surface</item>
         <item name="android:windowLightNavigationBar">false</item>
     </style>
 </resources>

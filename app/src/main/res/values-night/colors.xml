@@ -1,0 +1,13 @@
+<resources>
+    <color name="brand_light">#3D2A14</color>
+    <color name="ink">#F2F2F5</color>
+    <color name="surface">#121214</color>
+    <color name="surface_dim">#202024</color>
+    <color name="outline">#33343A</color>
+    <color name="muted">#A6A8B0</color>
+    <color name="text_primary">#F2F2F5</color>
+    <color name="text_secondary">#C6C8CF</color>
+    <color name="chip_bg">#3D2A14</color>
+    <color name="chip_text">#FFB366</color>
+    <color name="sheet">#1A1A1E</color>
+</resources>

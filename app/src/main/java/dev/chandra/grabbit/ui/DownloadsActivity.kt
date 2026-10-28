@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dev.chandra.grabbit.R
@@ -33,12 +35,30 @@ class DownloadsActivity : AppCompatActivity() {
         setContentView(b.root)
         b.toolbar.setNavigationOnClickListener { finish() }
         b.toolbar.inflateMenu(R.menu.menu_downloads)
-        b.toolbar.setOnMenuItemClickListener { if (it.itemId == R.id.action_clear) { DownloadStore.clearFinished(); true } else false }
+        b.toolbar.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.action_clear -> { DownloadStore.clearFinished(); true }
+                R.id.action_library -> { startActivity(Intent(this, LibraryActivity::class.java)); true }
+                else -> false
+            }
+        }
         b.list.layoutManager = LinearLayoutManager(this)
         b.list.adapter = adapter
     }
 
-    override fun onStart() { super.onStart(); DownloadStore.addListener(listener) }
+    override fun onStart() {
+        super.onStart()
+        DownloadStore.addListener(listener)
+        // Files deleted outside the app: mark the record so it can be re-downloaded instead of showing "Saved".
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            for (r in DownloadStore.all()) {
+                if (r.status != DownloadStatus.DONE) continue
+                val uri = r.savedUri?.let { Uri.parse(it) } ?: continue
+                val exists = runCatching { contentResolver.openFileDescriptor(uri, "r")?.use { true } ?: false }.getOrDefault(false)
+                if (!exists) DownloadStore.update(r.id) { it.status = DownloadStatus.FAILED; it.error = "File was removed"; it.savedUri = null }
+            }
+        }
+    }
     override fun onStop() { super.onStop(); DownloadStore.removeListener(listener) }
 
     private fun open(r: DownloadRecord) {

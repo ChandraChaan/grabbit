@@ -7,6 +7,11 @@
     <color name="surface_dim">#F3F3F6</color>
     <color name="outline">#DADCE0</color>
     <color name="muted">#6B6E76</color>
+    <color name="text_primary">#1B1B1F</color>
+    <color name="text_secondary">#4A4D55</color>
+    <color name="chip_bg">#FFE8CC</color>
+    <color name="chip_text">#9A3E00</color>
+    <color name="sheet">#FFFFFF</color>
     <color name="video">#E53935</color>
     <color name="audio">#8E24AA</color>
     <color name="image">#1E88E5</color>

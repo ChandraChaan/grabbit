@@ -34,7 +34,8 @@ Grabbit is an Android browser with a built-in media sniffer. Open any site, play
 - Live speed, ETA, percentage and size in the notification and the Downloads list; cancel, retry, open and delete. Login walls and error pages are refused instead of being saved as "videos".
 - Share any link from another app (YouTube, Instagram, X, Reddit…) straight to Grabbit: it opens the page and pops the download sheet.
 - Copied a link? Open Grabbit and a "Grab it" banner offers to fetch it.
-- Built-in player (Media3 ExoPlayer): play a stream before downloading, play saved files as a playlist, background audio with notification controls, double-tap seek, swipe for brightness and volume, speed, HLS quality picker, subtitles, rotate and picture-in-picture. Grabbit also registers as a system video/audio player.
+- Built-in player (Media3 ExoPlayer), MX-Player style: play a stream before downloading, play saved files or anything on the phone as a playlist, background audio with notification controls. Gestures: tap, double-tap seek, swipe for brightness and volume, horizontal swipe to scrub, long-press for 2x. Lock, aspect ratio (fit / crop / stretch), quality, audio track and subtitle selection, external SRT/VTT/ASS files, speed 0.25x–3x, sleep timer, screenshot, resume where you left off, auto-landscape, rotate and picture-in-picture. Grabbit also registers as a system video/audio player.
+- Library: every video and song on the phone grouped by folder, with thumbnails and durations, one tap from the home page.
 - Firebase Analytics and Crashlytics.
 
 ## Roadmap
@@ -44,7 +45,7 @@ Grabbit is an Android browser with a built-in media sniffer. Open any site, play
 - [x] 1.2 Built-in video and audio player (play before download, play saved files, background audio, gestures, PiP)
 - [x] 1.3 Download engine: parallel connections, resume, live speed and ETA
 - [x] 1.4 YouTube extractor with real quality options, on-device audio+video merge, HLS saved as MP4, quality picker, blob downloads
-- [ ] 1.5 MX-Player-class player: horizontal seek, lock, aspect modes, audio/subtitle tracks, speed, sleep timer, device video library
+- [x] 1.5 MX-Player-class player: horizontal seek, lock, aspect modes, audio/subtitle tracks, speed, sleep timer, screenshot, resume, device video library
 
 ## Contributing
 
@@ -75,7 +76,7 @@ firebase appdistribution:distribute app/build/outputs/apk/release/app-release.ap
 | `app/src/main/assets/home.html` | Start page with site shortcuts |
 | `sniffer/` | `UrlSniffer` (URL heuristics), `MediaRegistry` (per-page list), `SnifferBridge` (JS interface) |
 | `download/` | `DownloadService` (foreground orchestrator), `DirectDownloader` (parallel ranges + resume), `HlsDownloader` (parallel segments), `Hls` (m3u8 parser + AES), `Progress` (speed/ETA), `MediaSink` (MediaStore writer), `DownloadStore` (history) |
-| `ui/` | `MainActivity` (browser), `MediaSheet` (found-media sheet), `DownloadsActivity` |
+| `ui/` | `MainActivity` (browser), `MediaSheet` (found-media sheet + quality picker), `DownloadsActivity`, `LibraryActivity` (device media) |
 | `player/` | `PlayerActivity` (gestures, PiP, quality), `PlaybackService` (Media3 session, background audio) |
 | `extract/` | `YouTubeExtractor` (NewPipeExtractor wrapper), `NewPipeDownloader` (OkHttp bridge) |
 | `download/AvMuxer.kt` | MediaExtractor/MediaMuxer merge and HLS-to-MP4 remux |

@@ -34,7 +34,7 @@
             android:background="@drawable/bg_type_chip"
             android:paddingHorizontal="10dp"
             android:paddingVertical="3dp"
-            android:textColor="@color/brand_dark"
+            android:textColor="@color/chip_text"
             android:textStyle="bold" />
     </LinearLayout>
 

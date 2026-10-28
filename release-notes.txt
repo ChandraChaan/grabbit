@@ -1,7 +1,6 @@
-Grabbit 1.4.0
-- YouTube fixed: links are resolved with a real extractor. Download now offers every quality (144p to 2160p) and audio-only; video and audio are merged on the phone into one MP4.
-- Quality picker: tapping Download on anything with multiple qualities (YouTube, HLS streams) lets you choose resolution, format and size.
-- HLS streams are saved as standard MP4 files instead of .ts.
-- Sites that offer in-page (blob:) downloads now work.
-- Instagram/Facebook byte-range chunk URLs are collapsed into full tracks.
-- Download failures now show a reason in the list instead of silently saving junk.
+Grabbit 1.5.0
+- Player, MX-style: horizontal swipe to scrub, long-press for 2x speed, lock controls, aspect ratio (fit / crop / stretch), audio track and subtitle selection, load external SRT/VTT/ASS subtitles, speed 0.25x–3x, sleep timer, screenshot, resume where you left off, auto-landscape for wide videos.
+- New "Videos & music" library: everything on the phone grouped by folder, playable with the built-in player (shortcut on the home page and in Downloads).
+- Downloading something already saved asks first: Open, Download again, or Cancel. Links that point at the same file are shown once per page.
+- Refreshed light and dark colour palette.
+- Records whose files were deleted outside the app now say "File was removed" and can be re-downloaded.

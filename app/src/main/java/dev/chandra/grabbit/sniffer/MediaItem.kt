@@ -31,7 +31,17 @@ data class MediaItem(
     /** Higher is better; used to order quality choices and pick the default. */
     val qualityRank: Int get() = height * 10 + (if (audioUrl == null && label?.contains("no audio") != true) 5 else 0)
 
-    val key: String get() = url.substringBefore('#')
+    /**
+     * Identity of the item on the page. URLs that differ only by query string (signed tokens,
+     * cache busters) but point at the same file collapse into one entry.
+     */
+    val key: String get() {
+        val noFrag = url.substringBefore('#')
+        val u = runCatching { android.net.Uri.parse(noFrag) }.getOrNull() ?: return noFrag
+        val last = u.lastPathSegment ?: return noFrag
+        val fileLike = last.contains('.') && last.substringAfterLast('.').length in 2..5
+        return if (fileLike && u.host != null && u.host?.endsWith("googlevideo.com") != true) "${u.scheme}://${u.host}${u.path}" else noFrag
+    }
 
     val extension: String
         get() = UrlSniffer.extensionOf(url, mime, type, isHls)

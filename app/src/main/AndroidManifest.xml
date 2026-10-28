@@ -12,6 +12,11 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
     <application
         android:name=".GrabbitApp"
@@ -55,6 +60,12 @@
             android:name=".ui.DownloadsActivity"
             android:exported="false"
             android:label="@string/downloads"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
+            android:name=".ui.LibraryActivity"
+            android:exported="false"
+            android:label="@string/library"
             android:parentActivityName=".ui.MainActivity" />
 
         <activity

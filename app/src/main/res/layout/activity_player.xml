@@ -23,7 +23,7 @@
         app:resize_mode="fit"
         app:show_buffering="when_playing"
         app:show_subtitle_button="true"
-        app:surface_type="surface_view"
+        app:surface_type="texture_view"
         app:use_artwork="true" />
 
     <LinearLayout
@@ -46,24 +46,8 @@
                 android:contentDescription="@null"
                 app:tint="@color/brand" />
         </FrameLayout>
-        <TextView
-            android:id="@+id/audioTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:paddingHorizontal="32dp"
-            android:gravity="center"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:textColor="@android:color/white"
-            android:textSize="17sp" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="@string/now_playing"
-            android:textColor="#99FFFFFF"
-            android:textSize="12sp" />
+        <TextView android:id="@+id/audioTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:paddingHorizontal="32dp" android:gravity="center" android:maxLines="2" android:ellipsize="end" android:textColor="@android:color/white" android:textSize="17sp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/now_playing" android:textColor="#99FFFFFF" android:textSize="12sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -77,19 +61,27 @@
         android:paddingTop="6dp"
         android:paddingBottom="24dp">
         <ImageButton android:id="@+id/btnBack" style="@style/PlayerIcon" android:contentDescription="@string/back" android:src="@drawable/ic_back" />
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@android:color/white"
-            android:textSize="15sp" />
+        <TextView android:id="@+id/title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:textColor="@android:color/white" android:textSize="15sp" />
+        <ImageButton android:id="@+id/btnLock" style="@style/PlayerIcon" android:contentDescription="@string/lock" android:src="@drawable/ic_lock_open" />
+        <ImageButton android:id="@+id/btnAspect" style="@style/PlayerIcon" android:contentDescription="@string/aspect" android:src="@drawable/ic_aspect" />
         <ImageButton android:id="@+id/btnQuality" style="@style/PlayerIcon" android:contentDescription="@string/quality" android:src="@drawable/ic_quality" />
         <ImageButton android:id="@+id/btnPip" style="@style/PlayerIcon" android:contentDescription="@string/pip" android:src="@drawable/ic_pip" />
         <ImageButton android:id="@+id/btnRotate" style="@style/PlayerIcon" android:contentDescription="@string/rotate" android:src="@drawable/ic_rotate" />
+        <ImageButton android:id="@+id/btnMore" style="@style/PlayerIcon" android:contentDescription="@string/about" android:src="@drawable/ic_more" />
     </LinearLayout>
+
+    <!-- Shown while locked: the only touchable control -->
+    <ImageButton
+        android:id="@+id/btnUnlock"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/bg_indicator"
+        android:contentDescription="@string/unlock"
+        android:src="@drawable/ic_lock"
+        android:visibility="gone"
+        app:tint="@android:color/white" />
 
     <TextView
         android:id="@+id/indicator"

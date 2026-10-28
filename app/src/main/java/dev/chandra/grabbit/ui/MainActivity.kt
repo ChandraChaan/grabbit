@@ -144,6 +144,8 @@ class MainActivity : AppCompatActivity() {
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url = request.url.toString()
+                if (url.startsWith("grabbit://library")) { startActivity(Intent(this@MainActivity, LibraryActivity::class.java)); return true }
+                if (url.startsWith("grabbit://downloads")) { startActivity(Intent(this@MainActivity, DownloadsActivity::class.java)); return true }
                 if (url.startsWith("http") || url.startsWith("file:")) return false
                 if (url.startsWith("intent:") || url.contains("://")) {
                     // External app links (e.g. youtube://): keep the user in Grabbit by trying the web fallback.

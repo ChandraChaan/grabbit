@@ -105,7 +105,7 @@
                         android:padding="8dp"
                         android:src="@drawable/ic_link"
                         android:contentDescription="@null"
-                        app:tint="@color/brand_dark" />
+                        app:tint="@color/chip_text" />
 
                     <LinearLayout
                         android:layout_width="0dp"

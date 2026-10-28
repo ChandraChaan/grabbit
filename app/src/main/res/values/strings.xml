@@ -44,4 +44,24 @@
     <string name="fetching_qualities">Fetching qualities from YouTube…</string>
     <string name="extract_failed">Could not fetch YouTube qualities: %1$s</string>
     <string name="merged_note">Video and audio are merged on your phone after download.</string>
+    <string name="lock">Lock controls</string>
+    <string name="unlock">Unlock</string>
+    <string name="aspect">Aspect ratio</string>
+    <string name="audio_track">Audio track</string>
+    <string name="subtitles">Subtitles</string>
+    <string name="load_subtitle">Load subtitle file…</string>
+    <string name="sleep_timer">Sleep timer</string>
+    <string name="screenshot">Screenshot</string>
+    <string name="screenshot_saved">Screenshot saved to Pictures/Grabbit</string>
+    <string name="resume_from">Resumed from %1$s</string>
+    <string name="locked">Locked · tap the lock to unlock</string>
+    <string name="library">Videos on this phone</string>
+    <string name="library_videos">Videos</string>
+    <string name="library_music">Music</string>
+    <string name="library_empty">No media found on this phone.</string>
+    <string name="library_permission">Allow access to your videos and music to list them here.</string>
+    <string name="grant">Allow</string>
+    <string name="already_downloaded">Already downloaded</string>
+    <string name="already_downloaded_msg">%1$s (%2$s) is already in your downloads.</string>
+    <string name="download_again">Download again</string>
 </resources>

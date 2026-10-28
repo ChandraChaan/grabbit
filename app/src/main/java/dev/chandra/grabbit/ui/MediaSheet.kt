@@ -245,9 +245,24 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
             return if (h > 0) "%d:%02d:%02d".format(h, m, r) else "%d:%02d".format(m, r)
         }
 
-        fun enqueue(context: Context, item: MediaItem, userAgent: String, fileName: String) {
-            val active = dev.chandra.grabbit.download.DownloadStore.all().firstOrNull { it.url == item.url && (it.status == dev.chandra.grabbit.download.DownloadStatus.RUNNING || it.status == dev.chandra.grabbit.download.DownloadStatus.QUEUED) }
+        fun enqueue(context: Context, item: MediaItem, userAgent: String, fileName: String, force: Boolean = false) {
+            val all = dev.chandra.grabbit.download.DownloadStore.all()
+            val active = all.firstOrNull { it.url == item.url && (it.status == dev.chandra.grabbit.download.DownloadStatus.RUNNING || it.status == dev.chandra.grabbit.download.DownloadStatus.QUEUED) }
             if (active != null) { Toast.makeText(context, R.string.already_downloading, Toast.LENGTH_SHORT).show(); return }
+            val done = if (force) null else all.firstOrNull { it.status == dev.chandra.grabbit.download.DownloadStatus.DONE && it.savedUri != null && (it.url == item.url || it.fileName == fileName) }
+            if (done != null) {
+                androidx.appcompat.app.AlertDialog.Builder(context)
+                    .setTitle(R.string.already_downloaded)
+                    .setMessage(context.getString(R.string.already_downloaded_msg, done.fileName, DownloadService.fmt(done.bytesTotal)))
+                    .setPositiveButton(R.string.open) { _, _ ->
+                        if (done.mime.startsWith("video") || done.mime.startsWith("audio")) dev.chandra.grabbit.player.PlayerActivity.start(context, listOf(done.savedUri!!), listOf(done.fileName.substringBeforeLast('.')), listOf(done.mime), 0)
+                        else runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW).setDataAndType(android.net.Uri.parse(done.savedUri), done.mime).addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)) }
+                    }
+                    .setNeutralButton(R.string.download_again) { _, _ -> enqueue(context, item, userAgent, fileName, force = true) }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+                return
+            }
             val mime = item.mime?.substringBefore(';') ?: when (item.type) {
                 MediaType.VIDEO -> "video/mp4" // HLS is remuxed to MP4; the service renames to .ts only if that fails
                 MediaType.AUDIO -> "audio/mpeg"
