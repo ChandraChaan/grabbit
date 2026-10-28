@@ -24,6 +24,10 @@ data class DownloadRecord(
     var etaSec: Long = -1,
     var segmentsDone: Int = 0,
     var segmentsTotal: Int = 0,
+    /** Audio track URL to merge with the video (YouTube DASH). */
+    val audioUrl: String? = null,
+    /** Container of the merge inputs: "mp4" or "webm". */
+    val container: String? = null,
 ) {
     val progressPercent: Int get() = when {
         bytesTotal > 0 -> ((bytesDone * 100) / bytesTotal).toInt().coerceIn(0, 100)
@@ -37,6 +41,7 @@ data class DownloadRecord(
         put("createdAt", createdAt); put("status", status.name); put("bytesDone", bytesDone)
         put("bytesTotal", bytesTotal); put("savedUri", savedUri ?: JSONObject.NULL)
         put("error", error ?: JSONObject.NULL); put("pageTitle", pageTitle)
+        put("audioUrl", audioUrl ?: JSONObject.NULL); put("container", container ?: JSONObject.NULL)
     }
 
     companion object {
@@ -49,6 +54,8 @@ data class DownloadRecord(
             savedUri = o.optString("savedUri").takeIf { it.isNotBlank() && it != "null" },
             error = o.optString("error").takeIf { it.isNotBlank() && it != "null" },
             pageTitle = o.optString("pageTitle"),
+            audioUrl = o.optString("audioUrl").takeIf { it.isNotBlank() && it != "null" },
+            container = o.optString("container").takeIf { it.isNotBlank() && it != "null" },
         ).also { if (it.status == DownloadStatus.RUNNING || it.status == DownloadStatus.QUEUED) { it.status = DownloadStatus.FAILED; it.error = "Interrupted" } }
     }
 }

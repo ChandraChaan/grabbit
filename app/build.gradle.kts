@@ -23,8 +23,8 @@ android {
         applicationId = "dev.chandra.grabbit"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.3.0"
+        versionCode = 5
+        versionName = "1.4.0"
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -74,6 +74,8 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-hls:1.9.2")
     implementation("androidx.media3:media3-ui:1.9.2")
     implementation("androidx.media3:media3-session:1.9.2")
+    // YouTube / site extraction (same engine as the NewPipe app)
+    implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.26.5")
     implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")

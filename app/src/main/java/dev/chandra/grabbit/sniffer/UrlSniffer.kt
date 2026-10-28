@@ -31,6 +31,17 @@ object UrlSniffer {
         if (host.endsWith("googlevideo.com") && path.contains("videoplayback")) {
             return youtubeItem(uri)
         }
+        // Instagram / Facebook serve DASH tracks as byte-range chunks of one file: drop the range.
+        if ((host.contains("cdninstagram") || host.contains("fbcdn")) && (uri.getQueryParameter("bytestart") != null || uri.getQueryParameter("byteend") != null)) {
+            val b = uri.buildUpon().clearQuery()
+            for (name in uri.queryParameterNames) {
+                if (name == "bytestart" || name == "byteend") continue
+                uri.getQueryParameters(name).forEach { b.appendQueryParameter(name, it) }
+            }
+            val ext2 = path.substringAfterLast('/').substringAfterLast('.', "").lowercase(Locale.US)
+            val t = if (ext2 in audioExt) MediaType.AUDIO else MediaType.VIDEO
+            return MediaItem(b.build().toString(), t, "", "", label = "stream track", source = "network")
+        }
 
         val type = when {
             ext in hlsExt -> MediaType.VIDEO
@@ -77,7 +88,7 @@ object UrlSniffer {
         return MediaItem(
             url = builder.build().toString(),
             type = if (isAudio) MediaType.AUDIO else MediaType.VIDEO,
-            pageUrl = "", pageTitle = "", mime = mime, label = label, source = "youtube"
+            pageUrl = "", pageTitle = "", mime = mime, label = label, source = "youtube-sniffed", groupKey = "yt-sniffed"
         )
     }
 
@@ -93,7 +104,7 @@ object UrlSniffer {
     }
 
     fun extensionOf(url: String, mime: String?, type: MediaType, isHls: Boolean): String {
-        if (isHls) return "ts"
+        if (isHls) return "mp4" // HLS is remuxed to MP4 after download (falls back to .ts)
         val fromMime = when (mime?.substringBefore(';')?.trim()) {
             "video/mp4" -> "mp4"; "video/webm" -> "webm"; "video/quicktime" -> "mov"
             "audio/mp4", "audio/m4a", "audio/x-m4a" -> "m4a"; "audio/mpeg", "audio/mp3" -> "mp3"

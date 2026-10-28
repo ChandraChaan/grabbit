@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity() {
         }
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
-        web.addJavascriptInterface(SnifferBridge(registry), "GrabbitBridge")
+        web.addJavascriptInterface(SnifferBridge(registry, applicationContext), "GrabbitBridge")
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -224,6 +224,13 @@ class MainActivity : AppCompatActivity() {
         web.setDownloadListener { url, ua, contentDisposition, mimetype, _ ->
             // The site itself offered a file: download it with Grabbit's engine.
             val name = android.webkit.URLUtil.guessFileName(url, contentDisposition, mimetype)
+            android.util.Log.i("Grabbit", "onDownloadStart url=${url.take(80)} mime=$mimetype name=$name")
+            if (url.startsWith("blob:")) {
+                // blob: URLs only exist inside the page; pull the bytes out through JavaScript.
+                Toast.makeText(this, getString(R.string.download_queued, name), Toast.LENGTH_SHORT).show()
+                web.evaluateJavascript(blobDownloadJs(url, name, mimetype), null)
+                return@setDownloadListener
+            }
             val type = when { mimetype.startsWith("audio") -> dev.chandra.grabbit.sniffer.MediaType.AUDIO; mimetype.startsWith("image") -> dev.chandra.grabbit.sniffer.MediaType.IMAGE; else -> dev.chandra.grabbit.sniffer.MediaType.VIDEO }
             val sniffed = UrlSniffer.classify(Uri.parse(url))
             val item = MediaItem(sniffed?.url ?: url, sniffed?.type ?: type, web.url ?: "", name.substringBeforeLast('.'), mime = mimetype, isHls = sniffed?.isHls == true || mimetype.contains("mpegurl"), label = sniffed?.label)
@@ -232,6 +239,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun inject(view: WebView) { view.evaluateJavascript(snifferJs, null) }
+
+    private fun blobDownloadJs(url: String, name: String, mime: String): String {
+        val id = System.currentTimeMillis().toString()
+        val n = org.json.JSONObject.quote(name); val m = org.json.JSONObject.quote(mime); val u = org.json.JSONObject.quote(url)
+        return """
+            (function(){
+              var id = '$id', CH = 768*1024;
+              // Prefer the name the page gave the link (<a download="...">).
+              var link = document.querySelector('a[href="' + $u + '"]');
+              var nm = (link && link.getAttribute('download')) || $n;
+              if (nm && nm.indexOf('.') < 0 && $n.indexOf('.') >= 0) nm = nm + $n.substring($n.lastIndexOf('.'));
+              fetch($u).then(function(r){ return r.blob(); }).then(function(blob){
+                var total = Math.max(1, Math.ceil(blob.size / CH)), i = 0;
+                function next(){
+                  if (i >= total) return;
+                  var slice = blob.slice(i*CH, Math.min(blob.size, (i+1)*CH));
+                  var fr = new FileReader();
+                  fr.onload = function(){ var b64 = fr.result.split(',')[1] || ''; GrabbitBridge.onBlob(id, nm, $m || blob.type, b64, i, total, null); i++; next(); };
+                  fr.onerror = function(){ GrabbitBridge.onBlob(id, nm, $m, '', i, total, 'read failed'); };
+                  fr.readAsDataURL(slice);
+                }
+                next();
+              }).catch(function(e){ GrabbitBridge.onBlob(id, $n, $m, '', 0, 1, String(e)); });
+            })();
+        """.trimIndent()
+    }
 
     private fun setupChrome() {
         b.urlInput.setOnEditorActionListener { v, actionId, event ->

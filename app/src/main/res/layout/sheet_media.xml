@@ -38,6 +38,19 @@
             android:textStyle="bold" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/loading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="6dp"
+        android:visibility="gone">
+        <ProgressBar android:id="@+id/loadingSpinner" android:layout_width="18dp" android:layout_height="18dp" android:indeterminateTint="@color/brand" />
+        <TextView android:id="@+id/loadingText" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:textColor="@color/muted" android:textSize="13sp" />
+    </LinearLayout>
+
     <TextView
         android:id="@+id/empty"
         android:layout_width="match_parent"

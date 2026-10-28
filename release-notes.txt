@@ -1,5 +1,7 @@
-Grabbit 1.3.0
-- New download engine: large files download on up to 6 parallel connections and HLS streams fetch 4 segments at a time.
-- Every connection retries and resumes from where it stopped, so a network blip no longer restarts the download.
-- Live speed, ETA, percentage and size in the notification and the Downloads list.
-- Refuses to save login walls or error pages as "videos"; warns when a file is already downloading.
+Grabbit 1.4.0
+- YouTube fixed: links are resolved with a real extractor. Download now offers every quality (144p to 2160p) and audio-only; video and audio are merged on the phone into one MP4.
+- Quality picker: tapping Download on anything with multiple qualities (YouTube, HLS streams) lets you choose resolution, format and size.
+- HLS streams are saved as standard MP4 files instead of .ts.
+- Sites that offer in-page (blob:) downloads now work.
+- Instagram/Facebook byte-range chunk URLs are collapsed into full tracks.
+- Download failures now show a reason in the list instead of silently saving junk.

@@ -20,7 +20,17 @@ data class MediaItem(
     val source: String = "page",
     /** Poster frame or the image itself, for the sheet thumbnail. */
     val thumbUrl: String? = null,
+    /** Separate audio track to merge into this video-only stream (YouTube DASH). */
+    val audioUrl: String? = null,
+    /** Items sharing a group are shown as one row with a quality picker. */
+    val groupKey: String? = null,
+    /** Container hint: "mp4" or "webm". */
+    val container: String? = null,
 ) {
+    val group: String get() = groupKey ?: key
+    /** Higher is better; used to order quality choices and pick the default. */
+    val qualityRank: Int get() = height * 10 + (if (audioUrl == null && label?.contains("no audio") != true) 5 else 0)
+
     val key: String get() = url.substringBefore('#')
 
     val extension: String
@@ -37,7 +47,8 @@ data class MediaItem(
             val base = pageTitle.ifBlank { pageUrl.substringAfter("://").substringBefore('/') }
                 .replace(Regex("[\\\\/:*?\"<>|\\n\\r\\t]"), " ")
                 .replace(Regex("\\s+"), " ").trim().take(80).ifBlank { "grabbit" }
-            val suffix = label?.takeIf { it.isNotBlank() && !it.contains("(") }?.let { " [$it]" } ?: ""
+            val tag = label?.substringBefore('·')?.trim()?.takeIf { it.isNotBlank() && !it.contains("(") && !it.startsWith("Audio") }
+            val suffix = tag?.let { " [$it]" } ?: ""
             return "$base$suffix.$extension"
         }
 }

@@ -76,10 +76,10 @@ class DownloadService : Service() {
                     notify(rec.id, buildNotification(DownloadStore.get(rec.id) ?: rec))
                 }
             }
-            if (rec.isHls) {
-                HlsDownloader(rec, sink, progress) { done, total -> DownloadStore.update(rec.id) { it.segmentsDone = done; it.segmentsTotal = total } }.run()
-            } else {
-                DirectDownloader(rec, sink, progress).run()
+            when {
+                rec.audioUrl != null -> downloadAndMerge(rec, sink, progress)
+                rec.isHls -> downloadHlsAsMp4(rec, sink, progress)
+                else -> DirectDownloader(rec, sink, progress).run()
             }
             sink.finish()
             DownloadStore.update(rec.id) { it.status = DownloadStatus.DONE; it.savedUri = sink.uri.toString(); it.fileName = sink.displayName; it.speedBps = 0; it.etaSec = -1; if (it.bytesTotal <= 0) it.bytesTotal = it.bytesDone }
@@ -100,6 +100,64 @@ class DownloadService : Service() {
             withContext(Dispatchers.Main) { stopIfIdle() }
         }
     }
+
+    /** YouTube DASH: fetch video-only and audio-only tracks to cache, then stream-copy them into one file. */
+    private suspend fun downloadAndMerge(rec: DownloadRecord, sink: MediaSink, progress: Progress) {
+        val video = MediaSink.temp(this, "${rec.id}-v.bin")
+        val audio = MediaSink.temp(this, "${rec.id}-a.bin")
+        try {
+            DownloadStore.update(rec.id) { it.error = null }
+            DirectDownloader(rec, video, progress).run()
+            video.finish()
+            val audioRec = rec.copy(url = rec.audioUrl!!)
+            val audioProgress = Progress { done, total, speed, eta -> DownloadStore.update(rec.id) { it.bytesDone = progress.total.coerceAtLeast(0) + done; it.bytesTotal = -1; it.speedBps = speed; it.etaSec = eta } }
+            DirectDownloader(audioRec, audio, audioProgress).run()
+            audio.finish()
+            DownloadStore.update(rec.id) { it.speedBps = 0; it.etaSec = -1; it.error = null }
+            notify(rec.id, buildNotification((DownloadStore.get(rec.id) ?: rec).also { it.error = "merging" }))
+            val fd = sink.fileDescriptor ?: throw IllegalStateException("Cannot open target for merge")
+            val vf = java.io.File(video.path!!); val af = java.io.File(audio.path!!)
+            android.util.Log.i("Grabbit", "merge inputs: video=${vf.length()} B head=${headHex(vf)} audio=${af.length()} B head=${headHex(af)}")
+            val err = AvMuxer.merge(vf.absolutePath, af.absolutePath, fd, webm = rec.container == "webm")
+            if (err != null) {
+                android.util.Log.e("Grabbit", "merge failed: $err")
+                // keep inputs for inspection
+                vf.copyTo(java.io.File(cacheDir, "last-merge-video.bin"), overwrite = true)
+                af.copyTo(java.io.File(cacheDir, "last-merge-audio.bin"), overwrite = true)
+                throw IllegalStateException("Merge failed: $err (video ${fmt(vf.length())}, audio ${fmt(af.length())})")
+            }
+            DownloadStore.update(rec.id) { it.bytesTotal = java.io.File(video.path!!).length() + java.io.File(audio.path!!).length(); it.bytesDone = it.bytesTotal }
+        } finally {
+            video.abort(); audio.abort()
+        }
+    }
+
+    /** HLS: download the TS stream to cache, then remux into MP4; fall back to raw TS if the codecs don't fit. */
+    private suspend fun downloadHlsAsMp4(rec: DownloadRecord, sink: MediaSink, progress: Progress) {
+        val ts = MediaSink.temp(this, "${rec.id}-hls.ts")
+        try {
+            HlsDownloader(rec, ts, progress) { done, total -> DownloadStore.update(rec.id) { it.segmentsDone = done; it.segmentsTotal = total } }.run()
+            ts.finish()
+            val fd = sink.fileDescriptor
+            val remuxed = fd != null && rec.fileName.endsWith(".mp4", true) && AvMuxer.remuxToMp4(ts.path!!, fd)
+            if (!remuxed) {
+                // Copy the raw TS as-is into the target.
+                if (fd != null) { sink.channel?.truncate(0) }
+                java.io.FileInputStream(ts.path!!).use { input ->
+                    val buf = ByteArray(256 * 1024)
+                    while (true) { val n = input.read(buf); if (n < 0) break; sink.writeSequential(buf, n) }
+                }
+                DownloadStore.update(rec.id) { if (it.fileName.endsWith(".mp4", true)) it.fileName = it.fileName.removeSuffix(".mp4") + ".ts" }
+                sink.renameTo(DownloadStore.get(rec.id)?.fileName, "video/mp2t")
+            }
+        } finally {
+            ts.abort()
+        }
+    }
+
+    private fun headHex(f: java.io.File): String = runCatching {
+        f.inputStream().use { val b = ByteArray(16); val n = it.read(b); b.take(n.coerceAtLeast(0)).joinToString("") { "%02x".format(it) } }
+    }.getOrDefault("?")
 
     private fun buildNotification(rec: DownloadRecord): Notification {
         val open = PendingIntent.getActivity(this, 0, Intent(this, DownloadsActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)

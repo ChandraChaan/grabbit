@@ -7,6 +7,8 @@ import java.util.concurrent.CopyOnWriteArrayList
 /** Thread-safe list of media found on the page currently shown. Cleared on each top-level navigation. */
 class MediaRegistry {
     private val items = LinkedHashMap<String, MediaItem>()
+    /** Groups replaced by a better source (e.g. sniffed YouTube chunks once the extractor ran). */
+    private val suppressed = HashSet<String>()
     private val main = Handler(Looper.getMainLooper())
     private val listeners = CopyOnWriteArrayList<(List<MediaItem>) -> Unit>()
     @Volatile var pageUrl: String = ""
@@ -16,7 +18,7 @@ class MediaRegistry {
     fun removeListener(l: (List<MediaItem>) -> Unit) { listeners.remove(l) }
 
     fun clear() {
-        synchronized(items) { items.clear() }
+        synchronized(items) { items.clear(); suppressed.clear() }
         notifyChanged()
     }
 
@@ -28,6 +30,7 @@ class MediaRegistry {
         )
         var changed = false
         synchronized(items) {
+            if (item.groupKey != null && item.groupKey in suppressed) return
             val existing = items[item.key]
             if (existing == null) {
                 items[item.key] = item; changed = true
@@ -50,6 +53,11 @@ class MediaRegistry {
 
     fun update(key: String, transform: (MediaItem) -> MediaItem) {
         synchronized(items) { items[key]?.let { items[key] = transform(it) } }
+        notifyChanged()
+    }
+
+    fun removeGroup(groupKey: String) {
+        synchronized(items) { items.values.removeAll { it.groupKey == groupKey }; suppressed.add(groupKey) }
         notifyChanged()
     }
 

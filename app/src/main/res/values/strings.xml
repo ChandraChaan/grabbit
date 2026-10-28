@@ -40,4 +40,8 @@
     <string name="speed">Speed</string>
     <string name="now_playing">Now playing</string>
     <string name="already_downloading">Already downloading this file</string>
+    <string name="pick_quality">Choose quality</string>
+    <string name="fetching_qualities">Fetching qualities from YouTube…</string>
+    <string name="extract_failed">Could not fetch YouTube qualities: %1$s</string>
+    <string name="merged_note">Video and audio are merged on your phone after download.</string>
 </resources>

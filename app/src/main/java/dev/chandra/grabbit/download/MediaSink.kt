@@ -15,20 +15,33 @@ import java.io.RandomAccessFile
 import java.nio.channels.FileChannel
 
 /** Writes a finished file into the public Download/Grabbit folder, via MediaStore on Android 10+. */
-class MediaSink(private val context: Context, fileName: String, private val mime: String) {
+class MediaSink private constructor(private val context: Context, private val mime: String, fileName: String?, tempFile: File?) {
+    constructor(context: Context, fileName: String, mime: String) : this(context, mime, fileName, null)
+
     val uri: Uri
     private val file: File?
     val stream: OutputStream
-    val displayName: String
+    var displayName: String
+        private set
     /** Seekable channel for parallel positional writes (null if the storage does not allow it). */
     val channel: FileChannel?
     private var pfd: ParcelFileDescriptor? = null
     private var raf: RandomAccessFile? = null
     private var sequentialPos = 0L
+    val isTemp: Boolean = tempFile != null
+    /** File descriptor of the target, for MediaMuxer. */
+    val fileDescriptor: java.io.FileDescriptor? get() = pfd?.fileDescriptor ?: raf?.fd
+    val path: String? get() = file?.absolutePath
 
     init {
-        displayName = uniqueName(fileName)
-        if (Build.VERSION.SDK_INT >= 29) {
+        if (tempFile != null) {
+            displayName = tempFile.name
+            file = tempFile
+            val r = RandomAccessFile(tempFile, "rw"); r.setLength(0)
+            raf = r; channel = r.channel; stream = FileOutputStream(r.fd)
+            uri = Uri.fromFile(tempFile)
+        } else if (Build.VERSION.SDK_INT >= 29) {
+            displayName = uniqueName(fileName!!)
             val values = ContentValues().apply {
                 put(MediaStore.Downloads.DISPLAY_NAME, displayName)
                 put(MediaStore.Downloads.MIME_TYPE, mime)
@@ -49,6 +62,7 @@ class MediaSink(private val context: Context, fileName: String, private val mime
             }
             file = null
         } else {
+            displayName = uniqueName(fileName!!)
             val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Grabbit").apply { mkdirs() }
             file = File(dir, displayName)
             val r = RandomAccessFile(file, "rw")
@@ -81,7 +95,16 @@ class MediaSink(private val context: Context, fileName: String, private val mime
         return "$base ($i).$ext"
     }
 
+    /** Temporary scratch file inside the app cache (for merge / remux inputs). */
+    companion object {
+        fun temp(context: Context, name: String): MediaSink {
+            val dir = File(context.cacheDir, "grabbit-tmp").apply { mkdirs() }
+            return MediaSink(context, "application/octet-stream", null, File(dir, name))
+        }
+    }
+
     fun finish() {
+        if (isTemp) { runCatching { channel?.force(true) }; runCatching { stream.flush() }; return }
         runCatching { channel?.force(true) }
         runCatching { stream.flush() }
         runCatching { stream.close() }
@@ -94,10 +117,28 @@ class MediaSink(private val context: Context, fileName: String, private val mime
         }
     }
 
-    fun abort() {
+    /** Rename the pending target (used when the HLS remux falls back to raw TS). */
+    fun renameTo(newName: String?, newMime: String) {
+        if (newName == null || isTemp) return
+        if (Build.VERSION.SDK_INT >= 29) {
+            runCatching {
+                context.contentResolver.update(uri, ContentValues().apply { put(MediaStore.Downloads.DISPLAY_NAME, newName); put(MediaStore.Downloads.MIME_TYPE, newMime) }, null, null)
+                displayName = newName
+            }
+        } else {
+            file?.let { f -> val t = File(f.parentFile, newName); if (f.renameTo(t)) displayName = newName }
+        }
+    }
+
+    fun close() {
         runCatching { stream.close() }
         runCatching { raf?.close() }
         runCatching { pfd?.close() }
+    }
+
+    fun abort() {
+        close()
+        if (isTemp) { file?.delete(); return }
         if (Build.VERSION.SDK_INT >= 29) runCatching { context.contentResolver.delete(uri, null, null) }
         else file?.delete()
     }

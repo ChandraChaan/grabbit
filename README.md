@@ -22,11 +22,14 @@ Grabbit is an Android browser with a built-in media sniffer. Open any site, play
 ## Features
 
 - Full browser (URL bar, search, back/forward, desktop mode, fullscreen video, share-to-Grabbit from other apps).
+- **YouTube done properly**: watch, Shorts and youtu.be links are resolved with the NewPipe extractor into real options (144p to 2160p, plus audio-only). Video-only DASH streams are downloaded together with the best audio track and merged on the phone with the platform muxer, no re-encoding, so you get one normal MP4.
+- **Quality picker**: tapping Download on anything with more than one quality (YouTube, HLS variants) opens a picker with resolution, container and file size.
 - Media detection on two layers:
   - **Network**: every request the page makes is inspected for video/audio files and HLS (`.m3u8`) playlists. YouTube `videoplayback` streams are recognised and labelled by quality.
   - **Page**: a script injected into every page watches `<video>`, `<audio>`, `<img>`, `<source>`, Open Graph tags and anything the page plays or inserts later.
 - Floating download button with a live count; a bottom sheet shows type, resolution, duration and file size for each item.
-- HLS streams are expanded into their quality variants (1080p / 720p / ...) and downloaded segment by segment, including AES-128 encrypted streams and fMP4 init segments.
+- HLS streams are expanded into their quality variants (1080p / 720p / ...) and downloaded segment by segment, including AES-128 encrypted streams and fMP4 init segments, then remuxed into a standard MP4.
+- Sites that hand out `blob:` downloads (in-page generated files) are handled too: the bytes are pulled out of the page and saved like any other download.
 - Download engine: large files are split across up to 6 parallel connections and written at their offsets; HLS streams fetch 4 segments at a time and are stitched in order. Every connection retries and resumes from where it stopped. Requests carry the page's cookies, referer and user agent, so CDNs that block plain requests still work.
 - Live speed, ETA, percentage and size in the notification and the Downloads list; cancel, retry, open and delete. Login walls and error pages are refused instead of being saved as "videos".
 - Share any link from another app (YouTube, Instagram, X, Reddit…) straight to Grabbit: it opens the page and pops the download sheet.
@@ -40,6 +43,8 @@ Grabbit is an Android browser with a built-in media sniffer. Open any site, play
 - [x] 1.1 Share-to-Grabbit, clipboard banner, thumbnails and sections
 - [x] 1.2 Built-in video and audio player (play before download, play saved files, background audio, gestures, PiP)
 - [x] 1.3 Download engine: parallel connections, resume, live speed and ETA
+- [x] 1.4 YouTube extractor with real quality options, on-device audio+video merge, HLS saved as MP4, quality picker, blob downloads
+- [ ] 1.5 MX-Player-class player: horizontal seek, lock, aspect modes, audio/subtitle tracks, speed, sleep timer, device video library
 
 ## Contributing
 
@@ -72,10 +77,13 @@ firebase appdistribution:distribute app/build/outputs/apk/release/app-release.ap
 | `download/` | `DownloadService` (foreground orchestrator), `DirectDownloader` (parallel ranges + resume), `HlsDownloader` (parallel segments), `Hls` (m3u8 parser + AES), `Progress` (speed/ETA), `MediaSink` (MediaStore writer), `DownloadStore` (history) |
 | `ui/` | `MainActivity` (browser), `MediaSheet` (found-media sheet), `DownloadsActivity` |
 | `player/` | `PlayerActivity` (gestures, PiP, quality), `PlaybackService` (Media3 session, background audio) |
+| `extract/` | `YouTubeExtractor` (NewPipeExtractor wrapper), `NewPipeDownloader` (OkHttp bridge) |
+| `download/AvMuxer.kt` | MediaExtractor/MediaMuxer merge and HLS-to-MP4 remux |
 
 ## Limits
 
-- Sites that stream through DRM or Media Source Extensions with blob URLs (e.g. most of YouTube's adaptive streams) expose only separate video-only / audio-only streams; Grabbit labels these honestly.
+- DRM-protected streams (Netflix, Prime, Hotstar and the like) cannot be saved and are not shown.
+- YouTube changes its player often; the extractor is the same engine NewPipe uses and is updated with it. If YouTube breaks, update the `NewPipeExtractor` dependency.
 - Only download content you have the right to save. Respect each site's terms.
 
 ## License
