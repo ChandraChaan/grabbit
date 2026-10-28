@@ -99,6 +99,7 @@
                     android:layout_height="22dp"
                     android:layout_gravity="top|end"
                     android:background="@drawable/bg_badge"
+                    android:elevation="12dp"
                     android:gravity="center"
                     android:minWidth="22dp"
                     android:paddingHorizontal="6dp"

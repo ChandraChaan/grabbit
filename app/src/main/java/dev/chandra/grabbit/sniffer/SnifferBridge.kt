@@ -11,6 +11,8 @@ class SnifferBridge(private val registry: MediaRegistry) {
             val o = JSONObject(json)
             val url = o.optString("url")
             if (url.isBlank()) return
+            val page = o.optString("page")
+            if (url.substringBefore('#') == page.substringBefore('#')) return // element with an empty src resolves to the page itself
             val type = when (o.optString("type")) {
                 "audio" -> MediaType.AUDIO
                 "image" -> MediaType.IMAGE

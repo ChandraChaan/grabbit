@@ -55,7 +55,12 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
             if (!probed.add(item.key)) continue
             scope.launch(Dispatchers.IO) {
                 if (item.isHls) expandHls(item) else {
-                    val head = Http.head(item.url, item.pageUrl, activity.userAgent) ?: return@launch
+                    val head = Http.head(item.url, item.pageUrl, activity.userAgent)
+                    if (head == null) { if (item.type == MediaType.IMAGE) registry.remove(item.key); return@launch }
+                    val ct = head.contentType?.substringBefore(';')?.trim() ?: ""
+                    // Tracking pixels, HTML pages and placeholders are not media worth saving.
+                    if (ct.startsWith("text/") || ct.startsWith("application/json")) { registry.remove(item.key); return@launch }
+                    if (item.type == MediaType.IMAGE && head.contentLength in 0 until 10_000) { registry.remove(item.key); return@launch }
                     registry.update(item.key) { it.copy(sizeBytes = head.contentLength, mime = it.mime ?: head.contentType?.substringBefore(';')) }
                 }
             }
@@ -105,7 +110,11 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
             if (item.durationSec > 0) parts.add(fmtDuration(item.durationSec))
             if (item.sizeBytes > 0) parts.add(DownloadService.fmt(item.sizeBytes))
             b.subtitle.text = parts.joinToString("  ·  ")
-            b.host.text = runCatching { android.net.Uri.parse(item.url).host }.getOrNull() ?: ""
+            b.host.text = runCatching {
+                val u = android.net.Uri.parse(item.url)
+                val last = u.lastPathSegment?.takeIf { it.length in 1..48 }
+                if (last != null) "${u.host}/…/$last" else u.host ?: ""
+            }.getOrDefault("")
             b.btnDownload.setOnClickListener { enqueue(activity, item, activity.userAgent, item.suggestedFileName) }
             b.root.setOnLongClickListener {
                 activity.getSystemService(android.content.ClipboardManager::class.java).setPrimaryClip(android.content.ClipData.newPlainText("url", item.url))

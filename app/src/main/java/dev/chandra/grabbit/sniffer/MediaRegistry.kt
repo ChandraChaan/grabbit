@@ -52,6 +52,11 @@ class MediaRegistry {
         notifyChanged()
     }
 
+    fun remove(key: String) {
+        synchronized(items) { items.remove(key) }
+        notifyChanged()
+    }
+
     fun replace(key: String, with: List<MediaItem>) {
         synchronized(items) {
             items.remove(key)

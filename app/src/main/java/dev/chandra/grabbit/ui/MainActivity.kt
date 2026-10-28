@@ -51,7 +51,9 @@ class MainActivity : AppCompatActivity() {
     private val askNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
     private val askStorage = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
-    val userAgent: String get() = web.settings.userAgentString
+    /** Cached on the main thread; WebView settings must not be read from worker threads. */
+    @Volatile var userAgent: String = ""
+        private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,6 +114,7 @@ class MainActivity : AppCompatActivity() {
             // Chrome-like UA keeps sites from serving the "lite" player that hides media.
             userAgentString = userAgentString.replace("; wv", "").replace(Regex("Version/\\d+\\.\\d+ "), "")
         }
+        userAgent = web.settings.userAgentString
         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
             WebSettingsCompat.setAlgorithmicDarkeningAllowed(web.settings, false)
         }
@@ -208,7 +211,9 @@ class MainActivity : AppCompatActivity() {
             // The site itself offered a file: download it with Grabbit's engine.
             val name = android.webkit.URLUtil.guessFileName(url, contentDisposition, mimetype)
             val type = when { mimetype.startsWith("audio") -> dev.chandra.grabbit.sniffer.MediaType.AUDIO; mimetype.startsWith("image") -> dev.chandra.grabbit.sniffer.MediaType.IMAGE; else -> dev.chandra.grabbit.sniffer.MediaType.VIDEO }
-            MediaSheet.enqueue(this, MediaItem(url, type, web.url ?: "", name.substringBeforeLast('.'), mime = mimetype), ua, name)
+            val sniffed = UrlSniffer.classify(Uri.parse(url))
+            val item = MediaItem(sniffed?.url ?: url, sniffed?.type ?: type, web.url ?: "", name.substringBeforeLast('.'), mime = mimetype, isHls = sniffed?.isHls == true || mimetype.contains("mpegurl"), label = sniffed?.label)
+            MediaSheet.enqueue(this, item, ua, if (item.isHls) name.substringBeforeLast('.') + ".ts" else name)
         }
     }
 
@@ -261,6 +266,7 @@ class MainActivity : AppCompatActivity() {
     private fun applyDesktop() {
         val base = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         web.settings.userAgentString = if (desktopMode) base else WebSettings.getDefaultUserAgent(this).replace("; wv", "").replace(Regex("Version/\\d+\\.\\d+ "), "")
+        userAgent = web.settings.userAgentString
         web.settings.useWideViewPort = true
         web.reload()
     }
