@@ -1,0 +1,14 @@
+<resources>
+    <color name="brand">#FF6D00</color>
+    <color name="brand_dark">#C75200</color>
+    <color name="brand_light">#FFE0B2</color>
+    <color name="ink">#1B1B1F</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_dim">#F3F3F6</color>
+    <color name="outline">#DADCE0</color>
+    <color name="muted">#6B6E76</color>
+    <color name="video">#E53935</color>
+    <color name="audio">#8E24AA</color>
+    <color name="image">#1E88E5</color>
+    <color name="ok">#2E7D32</color>
+</resources>

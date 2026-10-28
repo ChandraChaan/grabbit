@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:id="@+id/browserGroup"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp"
+            android:background="?android:attr/colorBackground">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_launcher_foreground"
+                android:background="@drawable/ic_launcher_background"
+                android:contentDescription="@string/app_name"
+                android:layout_marginEnd="6dp"
+                android:clipToOutline="true" />
+
+            <EditText
+                android:id="@+id/urlInput"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_url_bar"
+                android:drawableStart="@drawable/ic_search"
+                android:drawablePadding="8dp"
+                android:drawableTint="@color/muted"
+                android:hint="@string/url_hint"
+                android:imeOptions="actionGo"
+                android:importantForAutofill="no"
+                android:inputType="textUri"
+                android:maxLines="1"
+                android:paddingHorizontal="14dp"
+                android:selectAllOnFocus="true"
+                android:textSize="15sp" />
+
+            <ImageButton
+                android:id="@+id/btnMore"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/about"
+                android:src="@drawable/ic_more" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginTop="-2dp"
+            android:max="100"
+            android:progressTint="@color/brand"
+            android:visibility="gone" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <WebView
+                android:id="@+id/webView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="16dp">
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.6"
+                    android:contentDescription="@string/download"
+                    android:src="@drawable/ic_download"
+                    app:backgroundTint="@color/brand"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:id="@+id/fabBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="22dp"
+                    android:layout_gravity="top|end"
+                    android:background="@drawable/bg_badge"
+                    android:gravity="center"
+                    android:minWidth="22dp"
+                    android:paddingHorizontal="6dp"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:text="3" />
+            </FrameLayout>
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="?android:attr/colorBackground"
+            android:elevation="8dp"
+            android:orientation="horizontal">
+
+            <ImageButton android:id="@+id/btnBack" style="@style/NavButton" android:contentDescription="@string/back" android:src="@drawable/ic_back" />
+            <ImageButton android:id="@+id/btnForward" style="@style/NavButton" android:contentDescription="@string/forward" android:src="@drawable/ic_forward" />
+            <ImageButton android:id="@+id/btnHome" style="@style/NavButton" android:contentDescription="@string/home" android:src="@drawable/ic_home" />
+            <ImageButton android:id="@+id/btnReload" style="@style/NavButton" android:contentDescription="@string/reload" android:src="@drawable/ic_reload" />
+            <ImageButton android:id="@+id/btnDownloads" style="@style/NavButton" android:contentDescription="@string/downloads" android:src="@drawable/ic_folder" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/fullscreenContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        android:visibility="gone" />
+</FrameLayout>

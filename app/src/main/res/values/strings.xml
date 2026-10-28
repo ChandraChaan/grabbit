@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Grabbit</string>
+    <string name="tagline">Grab any video, audio or image from the web</string>
+    <string name="url_hint">Search or type a URL</string>
+    <string name="downloads">Downloads</string>
+    <string name="no_downloads">Nothing downloaded yet.\nBrowse to any page and tap the download button when it lights up.</string>
+    <string name="media_found">Media on this page</string>
+    <string name="no_media">No media detected yet.\nPlay the video or scroll the page and check again.</string>
+    <string name="download">Download</string>
+    <string name="cancel">Cancel</string>
+    <string name="open">Open</string>
+    <string name="delete">Delete</string>
+    <string name="retry">Retry</string>
+    <string name="back">Back</string>
+    <string name="forward">Forward</string>
+    <string name="home">Home</string>
+    <string name="reload">Reload</string>
+    <string name="desktop_site">Desktop site</string>
+    <string name="share_page">Share page</string>
+    <string name="copy_link">Copy link</string>
+    <string name="notification_channel">Downloads</string>
+    <string name="download_started">Download started</string>
+    <string name="download_queued">Queued: %1$s</string>
+    <string name="download_complete">Saved to Download/Grabbit</string>
+    <string name="download_failed">Download failed</string>
+    <string name="notifications_rationale">Allow notifications to see download progress.</string>
+    <string name="clear_finished">Clear finished</string>
+    <string name="about">About</string>
+    <string name="about_text">Grabbit v%1$s\n\nBrowse any website. When a video, audio track or image loads or plays, the download button lights up with a count. Tap it to save the file to Download/Grabbit.\n\nDownloads supported: direct MP4/WebM/MP3/M4A/images and HLS (m3u8) streams.\n\nRespect copyright and the terms of the sites you visit. Download only content you have the right to save.</string>
+</resources>

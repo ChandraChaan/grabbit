@@ -1,0 +1,1 @@
+Grabbit 2026-10-28: first build. Browser with media sniffer, floating download button, direct + HLS downloads.

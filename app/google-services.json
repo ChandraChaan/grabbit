@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "600764554484",
+    "project_id": "grabbit-chandra",
+    "storage_bucket": "grabbit-chandra.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:600764554484:android:b73b028c123f9a4f6012a1",
+        "android_client_info": {
+          "package_name": "dev.chandra.grabbit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClN1Q-OEIMCMb4jK480YNma6bFRHsdyYk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

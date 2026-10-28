@@ -1,0 +1,12 @@
+<resources>
+    <style name="Theme.Grabbit" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorPrimaryContainer">@color/brand_dark</item>
+        <item name="colorSecondary">@color/brand_light</item>
+        <item name="android:statusBarColor">#1B1B1F</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">#1B1B1F</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>
