@@ -72,19 +72,21 @@ class DownloadsActivity : AppCompatActivity() {
 
     private inner class VH(private val b: ItemDownloadBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(r: DownloadRecord) {
+            val pct = r.progressPercent
             b.title.text = r.fileName
+            b.percent.visibility = if (r.status == DownloadStatus.RUNNING && pct >= 0) View.VISIBLE else View.GONE
+            b.percent.text = "$pct%"
             val mime = r.mime
             val icon = when { mime.startsWith("audio") -> R.drawable.ic_audio; mime.startsWith("image") -> R.drawable.ic_image; else -> R.drawable.ic_video }
             b.icon.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
             b.icon.setColorFilter(getColor(when { mime.startsWith("audio") -> R.color.audio; mime.startsWith("image") -> R.color.image; else -> R.color.video }))
             if (r.status == DownloadStatus.DONE && !mime.startsWith("audio")) Thumbs.loadLocal(this@DownloadsActivity, b.icon, r.savedUri, icon) else { b.icon.tag = null; b.icon.setImageResource(icon) }
-            val pct = r.progressPercent
             when (r.status) {
                 DownloadStatus.QUEUED -> { b.status.text = "Queued"; b.bar.visibility = View.VISIBLE; b.bar.isIndeterminate = true }
                 DownloadStatus.RUNNING -> {
                     b.bar.visibility = View.VISIBLE; b.bar.isIndeterminate = pct < 0
                     if (pct >= 0) b.bar.progress = pct
-                    b.status.text = if (r.isHls) (if (pct >= 0) "Downloading stream · $pct%" else "Downloading stream…") else "${DownloadService.fmt(r.bytesDone)}" + (if (r.bytesTotal > 0) " / ${DownloadService.fmt(r.bytesTotal)} · $pct%" else "")
+                    b.status.text = DownloadService.statusLine(r)
                 }
                 DownloadStatus.DONE -> { b.bar.visibility = View.GONE; b.status.text = "Saved · ${DownloadService.fmt(r.bytesTotal)} · Download/Grabbit" }
                 DownloadStatus.FAILED -> { b.bar.visibility = View.GONE; b.status.text = "Failed" + (r.error?.let { ": $it" } ?: "") }

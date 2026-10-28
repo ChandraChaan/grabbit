@@ -182,6 +182,8 @@ class MediaSheet(private val activity: MainActivity, private val registry: Media
         }
 
         fun enqueue(context: Context, item: MediaItem, userAgent: String, fileName: String) {
+            val active = dev.chandra.grabbit.download.DownloadStore.all().firstOrNull { it.url == item.url && (it.status == dev.chandra.grabbit.download.DownloadStatus.RUNNING || it.status == dev.chandra.grabbit.download.DownloadStatus.QUEUED) }
+            if (active != null) { Toast.makeText(context, R.string.already_downloading, Toast.LENGTH_SHORT).show(); return }
             val mime = item.mime?.substringBefore(';') ?: when (item.type) {
                 MediaType.VIDEO -> if (item.isHls) "video/mp2t" else "video/mp4"
                 MediaType.AUDIO -> "audio/mpeg"

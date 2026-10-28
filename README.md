@@ -27,7 +27,8 @@ Grabbit is an Android browser with a built-in media sniffer. Open any site, play
   - **Page**: a script injected into every page watches `<video>`, `<audio>`, `<img>`, `<source>`, Open Graph tags and anything the page plays or inserts later.
 - Floating download button with a live count; a bottom sheet shows type, resolution, duration and file size for each item.
 - HLS streams are expanded into their quality variants (1080p / 720p / ...) and downloaded segment by segment, including AES-128 encrypted streams and fMP4 init segments.
-- Downloads run in a foreground service with the page's cookies, referer and user agent, so CDNs that block plain requests still work. Progress notifications, cancel, retry, open and delete.
+- Download engine: large files are split across up to 6 parallel connections and written at their offsets; HLS streams fetch 4 segments at a time and are stitched in order. Every connection retries and resumes from where it stopped. Requests carry the page's cookies, referer and user agent, so CDNs that block plain requests still work.
+- Live speed, ETA, percentage and size in the notification and the Downloads list; cancel, retry, open and delete. Login walls and error pages are refused instead of being saved as "videos".
 - Share any link from another app (YouTube, Instagram, X, Reddit…) straight to Grabbit: it opens the page and pops the download sheet.
 - Copied a link? Open Grabbit and a "Grab it" banner offers to fetch it.
 - Built-in player (Media3 ExoPlayer): play a stream before downloading, play saved files as a playlist, background audio with notification controls, double-tap seek, swipe for brightness and volume, speed, HLS quality picker, subtitles, rotate and picture-in-picture. Grabbit also registers as a system video/audio player.
@@ -38,7 +39,7 @@ Grabbit is an Android browser with a built-in media sniffer. Open any site, play
 - [x] 1.0 Browser, sniffer, direct + HLS downloads
 - [x] 1.1 Share-to-Grabbit, clipboard banner, thumbnails and sections
 - [x] 1.2 Built-in video and audio player (play before download, play saved files, background audio, gestures, PiP)
-- [ ] 1.3 Download engine: parallel connections, resume, live speed and ETA
+- [x] 1.3 Download engine: parallel connections, resume, live speed and ETA
 
 ## Contributing
 
@@ -68,7 +69,7 @@ firebase appdistribution:distribute app/build/outputs/apk/release/app-release.ap
 | `app/src/main/assets/sniffer.js` | Script injected into pages to find media |
 | `app/src/main/assets/home.html` | Start page with site shortcuts |
 | `sniffer/` | `UrlSniffer` (URL heuristics), `MediaRegistry` (per-page list), `SnifferBridge` (JS interface) |
-| `download/` | `DownloadService` (foreground downloader), `Hls` (m3u8 parser + AES), `MediaSink` (MediaStore writer), `DownloadStore` (history) |
+| `download/` | `DownloadService` (foreground orchestrator), `DirectDownloader` (parallel ranges + resume), `HlsDownloader` (parallel segments), `Hls` (m3u8 parser + AES), `Progress` (speed/ETA), `MediaSink` (MediaStore writer), `DownloadStore` (history) |
 | `ui/` | `MainActivity` (browser), `MediaSheet` (found-media sheet), `DownloadsActivity` |
 | `player/` | `PlayerActivity` (gestures, PiP, quality), `PlaybackService` (Media3 session, background audio) |
 

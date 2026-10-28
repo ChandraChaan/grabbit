@@ -28,11 +28,12 @@ data class MediaItem(
 
     val suggestedFileName: String
         get() {
-            // Images usually carry a meaningful file name in the URL; videos rarely do.
-            if (type == MediaType.IMAGE) {
-                val last = runCatching { android.net.Uri.parse(url).lastPathSegment }.getOrNull()
-                if (last != null && last.contains('.') && last.length in 5..100 && !last.startsWith("getuid")) return last
-            }
+            // Images usually carry a meaningful file name in the URL; so does a media file opened directly.
+            val last = runCatching { android.net.Uri.parse(url).lastPathSegment }.getOrNull()
+            val looksLikeFile = last != null && last.contains('.') && last.length in 5..100 && !last.startsWith("getuid") &&
+                last.substringAfterLast('.').length in 2..4
+            val pageIsTheFile = pageUrl.substringBefore('?') == url.substringBefore('?') || pageTitle.endsWith(last ?: "\u0000")
+            if (looksLikeFile && (type == MediaType.IMAGE || pageIsTheFile)) return last!!
             val base = pageTitle.ifBlank { pageUrl.substringAfter("://").substringBefore('/') }
                 .replace(Regex("[\\\\/:*?\"<>|\\n\\r\\t]"), " ")
                 .replace(Regex("\\s+"), " ").trim().take(80).ifBlank { "grabbit" }

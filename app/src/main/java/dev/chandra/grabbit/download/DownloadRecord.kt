@@ -20,8 +20,16 @@ data class DownloadRecord(
     var savedUri: String? = null,
     var error: String? = null,
     var pageTitle: String = "",
+    var speedBps: Long = 0,
+    var etaSec: Long = -1,
+    var segmentsDone: Int = 0,
+    var segmentsTotal: Int = 0,
 ) {
-    val progressPercent: Int get() = if (bytesTotal > 0) ((bytesDone * 100) / bytesTotal).toInt().coerceIn(0, 100) else -1
+    val progressPercent: Int get() = when {
+        bytesTotal > 0 -> ((bytesDone * 100) / bytesTotal).toInt().coerceIn(0, 100)
+        segmentsTotal > 0 -> (segmentsDone * 100 / segmentsTotal).coerceIn(0, 100)
+        else -> -1
+    }
 
     fun toJson(): JSONObject = JSONObject().apply {
         put("id", id); put("url", url); put("fileName", fileName); put("mime", mime)

@@ -74,6 +74,16 @@
     }
     if (root.tagName === 'VIDEO' || root.tagName === 'AUDIO') mediaEl(root);
     if (root.tagName === 'IMG') imgEl(root);
+    // Plain links to media files (download pages, file listings, forums).
+    var links = root.querySelectorAll ? root.querySelectorAll('a[href]') : [];
+    for (var k = 0; k < links.length; k++) {
+      var href = links[k].getAttribute('href') || '';
+      var path = href.split('?')[0].split('#')[0].toLowerCase();
+      var m = path.match(/\.(mp4|m4v|webm|mkv|mov|3gp|avi|mp3|m4a|aac|ogg|opus|wav|flac|m3u8)$/);
+      if (!m) continue;
+      var t = /^(mp3|m4a|aac|ogg|opus|wav|flac)$/.test(m[1]) ? 'audio' : 'video';
+      post(t, href, { linkText: (links[k].textContent || '').trim().slice(0, 80) });
+    }
     // Open Graph hints are often the direct media of the page (Instagram, Twitter…)
     var og = document.querySelectorAll('meta[property="og:video"],meta[property="og:video:url"],meta[property="og:video:secure_url"],meta[property="og:image"],meta[name="twitter:player:stream"]');
     for (var j = 0; j < og.length; j++) {

@@ -1,6 +1,5 @@
-Grabbit 1.2.0
-- Built-in video and audio player (ExoPlayer): plays saved files and streams found on a page before you download them.
-- Gestures: tap for controls, double-tap left/right to seek 10 s, swipe left edge for brightness, right edge for volume.
-- Speed control, quality picker for HLS streams, subtitles, rotate, picture-in-picture.
-- Audio keeps playing in the background with notification and lock-screen controls.
-- Grabbit now shows up as a player when you open video or audio files from other apps.
+Grabbit 1.3.0
+- New download engine: large files download on up to 6 parallel connections and HLS streams fetch 4 segments at a time.
+- Every connection retries and resumes from where it stopped, so a network blip no longer restarts the download.
+- Live speed, ETA, percentage and size in the notification and the Downloads list.
+- Refuses to save login walls or error pages as "videos"; warns when a file is already downloading.

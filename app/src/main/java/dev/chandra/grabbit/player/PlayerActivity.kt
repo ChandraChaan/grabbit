@@ -259,11 +259,9 @@ class PlayerActivity : AppCompatActivity() {
                 return true
             }
         })
-        b.playerView.setOnTouchListener { v, e ->
-            detector.onTouchEvent(e)
-            if (e.action == MotionEvent.ACTION_UP) v.performClick()
-            true
-        }
+        // PlayerView.performClick() toggles the controller itself, so we must not call it here:
+        // the gesture detector owns tap handling (single tap toggles, double tap seeks).
+        b.playerView.setOnTouchListener { _, e -> detector.onTouchEvent(e); true }
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
